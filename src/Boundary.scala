@@ -22,6 +22,8 @@
  *      |								 |
  *      ----------------------------------
  *      xbot  
+ *      
+ *      curerntly only has rectangular coords
  */
 
 class Boundary (

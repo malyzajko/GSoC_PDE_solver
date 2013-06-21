@@ -1,10 +1,12 @@
 /**
  * Linear PDEs are of the form:
- * Lu = au_{tt} + bu_{xt} + cu_{xx} + f = 0
+ * Lu = alpha u_{tt} + beta u_{xt} + gamma u_{xx} + f = 0
  * where a, b, c and f are functions
  * 
- * To solve, we need boundary condition V, step size and a constant.
+ * To solve, we need boundary condition V, step size and a 
  * For the while, I've assumed that the steps are equally sized in x and t
+ * 
+ * u_{xx} + u_{tt} = c(x, t)
  * 
  * a: (Double, Double) => Double,
                  b: (Double, Double) => Double, 
@@ -12,41 +14,56 @@
                  f: (Double, Double) => Double, 
  */
 
-class LinearPDE (V: Boundary, step: Double, c: (Double, Double) => Double)
+class LinearPDE (V: Boundary, c: (Double, Double) => Double)
 {
-  def generateSolution : Array[Array[Double]] = {
-    val xsize = (((V.xbint._2 -V.xbint._1)/step abs) round).toInt
-    val tsize = (((V.tbint._2 -V.tbint._1)/step abs) round).toInt
-
-    //Array to store solution points. u(x)(t)
-    var u = Array.fill(xsize, tsize)(0.0)
-    var v = Array.fill(xsize, tsize)(0.0)
-
-    //Fill boundaries
-    val tmin = V.b1._2._1
-    val tmax = V.b2._2._2
-    val xmin = V.b3._2._1
-    val xmax = V.b4._2._2
-    for (i <- 0 until xsize){
-      u(i)(0) = V.b1._1 (xmin+i*step, tmin)
-      u(i)(tsize-1) = V.b2._1 (xmin+i*step, tmax)
-    }
-    println("test:"+u(0)(0))
+  def generateSolution (step: Double) : Array[Array[Double]] = {
     
-    for (i <- 0 until tsize){
-      u(0)(i) = V.b3._1 (xmin, tmin+i*step)
-      u(xsize-1)(i) = V.b4._1 (xmax, tmin+i*step)
-    }
-    
-    for(i <- 1 until xsize-1){
-      for(j <- 1 until tsize-1){
-        v(i)(j) = u(i-1)(j) + u(i+1)(j) +  u(i)(j-1) + u(i)(j+1) - c(xmin+i*step, tmin+i*step)
-      }
-    }
-    for(i <- 1 until xsize-1)
-      for(j <- 1 until tsize-1){
-    	  u(i)(j) = v(i)(j)
-      }
+    val xsize = (((V.xbint._2 -V.xbint._1)/step abs) round).toInt+1
+    val tsize = (((V.tbint._2 -V.tbint._1)/step abs) round).toInt+1
+	
+	//Array to store solution points. u(x)(t)
+	var u = Array.fill(xsize, tsize)(0.0)
+	var v = Array.fill(xsize, tsize)(0.0)
+	
+	//Fill boundaries
+	val tmin = V.b1._2._1
+	val tmax = V.b2._2._2
+	val xmin = V.b3._2._1
+	val xmax = V.b4._2._2
+	for (i <- 0 until xsize){
+	  u(i)(0) = V.b1._1 (xmin+i*step, tmin)
+	  u(i)(tsize-1) = V.b2._1 (xmin+i*step, tmax)
+	}
+	for (i <- 0 until tsize){
+	  u(0)(i) = V.b3._1 (xmin, tmin+i*step)
+	  u(xsize-1)(i) = V.b4._1 (xmax, tmin+i*step)
+	}
+	
+    def generateSolution1 {
+      
+	  def u00 (i: Int, j: Int) = {
+	    (u(i-1)(j) + u(i+1)(j) + u(i)(j-1) + u(i)(j+1) -
+             c(xmin+i*step,tmin+j*step)*step*step )/4.0
+	  }
+      var diff = 0.0 //Difference between iterations
+      
+      for(i <- 1 until xsize-1){
+	    for(j <- 1 until tsize-1){
+	      v(i)(j) = u00(i, j)
+	      diff += (v(i)(j) - u(i)(j)).abs
+	    }
+	  }
+	  
+	  for(i <- 1 until xsize-1)
+	    for(j <- 1 until tsize-1){
+	  	  u(i)(j) = v(i)(j)
+	    }
+	  
+	  if (diff > 0.001) generateSolution1
+	   
+	}
+   
+	generateSolution1  
     u
   }
 }
@@ -56,23 +73,31 @@ object LinearPDE
 {
   
   def main (args: Array[String]){
+    
+    import scala.math._
     /*
-     * testing with  u_{xx} + u_{tt} -12x-10t  = 0
-     * and boundary: u(x, t) = x^3 + t^3 + 2x^2t+ 3xt^2+ 4x+ 5t + 6
+     * testing with the Laplace equation : a u_{xx} + u_{tt} = 0 
+     * and a boundary with constant potential along all sides except for
+     * at the bottom
      */
-    val testBF = (x: Double, t: Double) => x*x*x + t*t*t + 2*x*x*t + 3*x*t*t + 4*x + 5*t + 6
+    val bot = (x: Double, t: Double) => x*x*x + t*t*t + 2.0*x*x*t + 3.0*x*t*t + 4.0*x + 5.0*t +6.0
+    val top = (x: Double, t : Double) => sin(Math.Pi*x)*exp(-Math.Pi)
+    val sides = (x: Double, t:Double ) => 0.0
     val testBoundary = new Boundary(
-      (testBF, (-1, 1), (0, -1)),
-      (testBF, (-1, 1), (0, 1)),
-      (testBF, (-1, 1), (1, -1)),
-      (testBF, (-1, 1), (1, 1))
+      (bot, (-1, 1), (1, -1)),
+      (bot, (-1, 1), (1, 1)),
+      (bot, (-1, 1), (0, -1)),
+      (bot, (-1, 1), (0, 1))
     )
-    val test = new LinearPDE(testBoundary, 0.2, (x, t) => 12*x + 10*t)
-    val result = test.generateSolution
-    for (i <- 0 until result.size)
+    def solution (x: Double, t: Double) = sin(Math.Pi*x)*exp(-Math.Pi*t)
+    val test = new LinearPDE(testBoundary, (x, t) => 12*x + 10* t)
+    val result = test.generateSolution(0.2)
+    for (i <- 0 until result.size){
       for (j <- 0 until result(1).size) {
-        println("result("+i+")("+j+")="+result(i)(j))
+        printf(" %2.2f ",result(i)(j))
       }
+      println("")
+    }
   }
 }
 

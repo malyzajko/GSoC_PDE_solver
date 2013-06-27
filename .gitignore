@@ -213,3 +213,14 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+#############
+## LaTeX
+#############
+
+DOCS/auto/
+DOCS/header.tex
+DOCS/intro.aux
+DOCS/intro.log
+DOCS/intro.synctex.gz
+DOCS/intro.tex

@@ -29,8 +29,8 @@
 class Boundary (
     val b1: ((Double, Double) => Double, (Double, Double), (Int, Double)),
     val b2: ((Double, Double) => Double, (Double, Double), (Int, Double)), 
-    val b3:  ((Double, Double) => Double, (Double, Double), (Int, Double)),
-    val b4:  ((Double, Double) => Double, (Double, Double), (Int, Double))
+    val b3: ((Double, Double) => Double, (Double, Double), (Int, Double)),
+    val b4: ((Double, Double) => Double, (Double, Double), (Int, Double))
     ) {
   
   val xbint = b1 match{

@@ -32,16 +32,10 @@ object Variable {
 	  lock(xname)
 	  
   	  val x = Symbol(xname)
-  	  
-  	  def infix_^(c: Double) = Pow(c, this)
-  	  def infix_*(c: Double) = Mul(c, this)
-  	  def infix_/(c: Double) = Div(c, this)
-  	  def infix_+(c: Double) = Add(c, this)
+
   	  
   	  def -(t: NFVariable) = Sub(this, t)
-  	  def -(c: Double) = Sub(this, c) 
   	  def infix_-(c: Double) = Sub(c, this)  
-  	  
   	  def infix_<(c: Double) = LEQ(c, this)
   	  
 	}

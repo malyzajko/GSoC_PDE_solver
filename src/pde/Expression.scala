@@ -37,12 +37,19 @@ abstract class Expr {
        //TODO test speed of this function
     }
     
-    def infix_=(e: Expr): PDE  = {
+    def ===(e: Expr): PDE  = {
       import scala.collection.mutable.Map
       val exp = Sub(this, e)
       val map = Map[Function, Expr]()
       
       def update(u: Function, e: Expr) {
+        def hasFunction(e: Expr): Boolean = e match {
+          case Mul(a, b) => hasFunction(a) && hasFunction(b)
+          case Add(a, b) => hasFunction(a) && hasFunction(b)
+          case Sub(a, b) => hasFunction(a) && hasFunction(b)
+          case Div(a, b) => hasFunction(a) && hasFunction(b)
+          case f: Function => true
+        }
         if (map.contains(u)) {
           val old = map(u)
           map += (u -> Add(old, e))
@@ -56,10 +63,10 @@ abstract class Expr {
         e match {
 	      case Mul(a, b: Derivative) => update(b, a)
 	      case Add(a: Derivative, b) => update(a, Const(1)); splitUp(b)
+	      case Add(a, b)             => splitUp(a); splitUp(b)
 	      case Sub(a: Derivative, b) => update(a, Const(1)); splitUp(Neg(b))
+	      case Sub(a, b)             => splitUp(a); splitUp(b)
 	      case a: Derivative         => update(a, Const(1))
-	      case f @ Add(a, b)         => update(noDerivative, f) 
-	      case f @ Sub(a, b)         => update(noDerivative, Neg(f)) 
         }
       }
       

@@ -229,9 +229,9 @@ DOCS/intro.pdf
 ## SCALA
 ############
 target/
-src/target
+src/target/
 src/target/*
-src/Parser
+src/Parser/
 src/Parser/*
 target/*
 bin/*

@@ -48,6 +48,7 @@ local.properties
 [Rr]elease/
 x64/
 build/
+target/
 [Bb]in/
 [Oo]bj/
 
@@ -223,7 +224,7 @@ DOCS/auto/
 DOCS/intro.aux
 DOCS/intro.log
 DOCS/intro.synctex.gz
-DOCS/intro.pdf        
+DOCS/*.pdf        
 
 ############
 ## SCALA

@@ -1,3 +1,5 @@
+package pde;
+
 object Test extends App {
 
     /*
@@ -35,16 +37,11 @@ object Test extends App {
 
 	val x = new NFVariable("x")
 	val t = new NFVariable("t")
-	val u = new FVariable("u",x, t)
+	val u = new FVariable("u")
 	val map = collection.immutable.Map(x -> 2.5, t -> 3.0)
-	val test = -1 < x < 1
-	val tim = u(0, t) === t
 	val exp1 = Add(x, Add(x, Mul(t,5)))
-	val exp2 = 6*t+5*x
 	  
 	println(eval(exp1, map))
-	println(eval(exp2, map))
-
     
     
 }

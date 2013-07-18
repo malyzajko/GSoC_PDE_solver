@@ -1,0 +1,118 @@
+%% ----------------------------------------------------------------------------
+%% --------------Jamob The Elpehant's Custom Physics Header--------------------
+%% ----------------------------------------------------------------------------
+%% Version 0.1
+
+% Use \input{header.tex} at the top of the file to use this
+% Comment in and out as you may see fit
+
+
+%% --------------------General Stuff------------------------------------------ 
+\documentclass[11pt]{article}
+\usepackage{amsmath}  % AMSMath Package
+\usepackage{amsthm}   % Theorem Formatting
+\usepackage{amssymb}  % Math symbols like \mathbb
+\usepackage{graphics} % EPS images
+\usepackage{multicol} % Multiple columns in tables
+\usepackage{multirow} % Multiple rows in tables
+\usepackage[dvips, letterpaper, margin=0.75in, bottom=0.5in]{geometry}
+% Sets margins to something reasonable
+\usepackage{cancel} % To cross out stuff
+\usepackage{enumerate}
+\renewcommand{\labelitemii}{(\alph{enumi})}
+% Use letters for 2nd level enumeration
+\usepackage{fancyhdr}
+\newcommand{\header}[4]{\pagestyle{fancy}\lhead{#1\\#2}\rhead{#3\\#4}}
+
+\usepackage{mathtools} % TO BOX ACROSS ALIGNMENTS TABS!!!111 :D
+
+% -----------------------------General Math------------------------------------
+\newcommand{\lrbrace}[1]{\left(#1\right)}
+\newcommand{\lrbraces}[1]{\left[#1\right]}
+% Auto-sized braces because I'm lazy
+\let\oldepsilon=\epsilon
+\let\oldphi=\phi
+\renewcommand{\epsilon}{\varepsilon}
+\renewcommand{\phi}{\varphi}
+% Renaming epsilon and phi to the cool epsilon and phi
+\usepackage{calligra}
+\DeclareMathAlphabet{\mathcalligra}{T1}{calligra}{m}{n}
+\DeclareFontShape{T1}{calligra}{m}{n}{<->s*[2.2]callig15}{}
+\newcommand{\scripty}[1]{\ensuremath{\mathcalligra{#1}}}
+% For scripted letters, like \scirpty{r}
+\newcommand{\avg}[1]{\left\langle #1\right\rangle}
+\newcommand{\abs}[1]{\left\lvert #1\right\rvert}
+\newcommand{\cotan}{\mbox{cotan}}
+% Because for some reason it's undefined
+\newcommand{\multequal}[4]
+{
+    \left\{
+        \begin{array}{l l}
+            #1&#2\\\\
+            #3&#4
+        \end{array}
+    \right.
+}
+% 1 and 3 are the values, 2 and 4 are the conditions
+
+% ------------------------------Linear Algebra----------------------------------
+\let\vaccent=\v % Renaming the funny \v{} accent to \vaccent{}
+\renewcommand{\v}[1]{\ensuremath{\mathbf{#1}}}
+\newcommand{\gv}[1]{\ensuremath{\mathbf{$#1$}}}
+% Alternative representation of vectors, bold vs the arrow
+\DeclareMathOperator{\Tr}{Tr}
+\newcommand{\trace}[1]{\ensuremath{\Tr\left(#1\right)}}
+% Two alternatives for trace, one comes with auto-sized brakets
+\newcommand{\ptrace}[2]{\Tr_{#1}\left(#2\right)}
+% Partial trace
+\newcommand{\uv}[1]{\mathbf{\hat{#1}}} % for unit vector
+\newcommand{\I}{\ensuremath{\mathbb{I}}}
+\newcommand{\commute}[2]{\left[#1, #2\right]}
+
+
+% ----------------------------------Quantum-------------------------------------
+\newcommand{\bra}[1]{\ensuremath{\left\langle #1\right\rvert}}
+\newcommand{\ket}[1]{\ensuremath{\left\lvert #1\right\rangle}}
+\newcommand{\braket}[2]{\ensuremath{\left\langle #1\right\lvert\left.
+            #2\right\rangle}}
+\newcommand{\ketbra}[2]{\ensuremath{\left\lvert
+            #1\right\rangle\left\langle #2\right\rvert}}
+\newcommand{\hammy}{\ensuremath{\hat{H}}} % Hamiltonian
+\newcommand{\rhohat}{\hat{\rho}}
+\newcommand{\shat}[1]{\hat{S}_{#1}}
+\newcommand{\lhat}[1]{hat{L}_{#1}}
+
+
+% ----------------------------------Calculus------------------------------------
+\newcommand{\del}{\patrial} % Because typing \patrial is long
+\newcommand{\dbar}{\mathchar'26\mkern-10mud}
+\let\underdot=\d
+\renewcommand{\d}[2]{\frac{d #1}{d #2}}
+\newcommand{\dd}[2]{\frac{d^2 #1}{d #2^2}}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\pdc}[3]{\frac{\partial^2 #1}{\partial #2\partial #3}}
+\newcommand{\grad}[1]{\gv{\nabla} #1}
+\newcommand{\curl}[1]{\gv{\nabla}\times #1}
+\newcommand{\dive}[1]{\gv{\nabla}\cdot #1}
+% I actually use the \div symbol, so I didn't name it \div
+\newcommand{\indint}[4]{\displaystyle\int_{#1}^{#2}#3\ d#4}
+\newcommand{\inteval}[3]{#1\bigg\rvert_{#2}^{#3}}
+\newcommand{\deval}[2]{#1\bigg\rvert_{#2}}
+
+% --------------------------Electricity and Magnetism--------------------------
+\newcommand{\hfield}{\v{H}}
+\newcommand{\bfield}{\v{B}}
+\newcommand{\efield}{\v{E}}
+\newcommand{\econstant}{\epsilon_0}
+\newcommand{\mconstant}{\mu_0}
+
+% ---------------------------Theorem Stuff--------------------------------------
+
+\newtheorem{prop}{Proposition}
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{lem}[thm]{Lemma}
+\theoremstyle{definition}
+\newtheorem{dfn}{Definition}
+\theoremstyle{remark}
+\newtheorem*{rmk}{Remark}

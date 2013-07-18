@@ -219,8 +219,16 @@ pip-log.txt
 #############
 
 DOCS/auto/
-DOCS/header.tex
 DOCS/intro.aux
 DOCS/intro.log
 DOCS/intro.synctex.gz
-DOCS/intro.tex
+DOCS/intro.pdf        
+
+############
+## SCALA
+############
+
+target/*
+bin/*
+src/Test.scala
+src/.emacs.desktop

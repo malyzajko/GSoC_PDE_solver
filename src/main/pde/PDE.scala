@@ -12,7 +12,7 @@ object PDE {
   }
   
   def firstOrder(a: Expr, b: Expr, c: Expr, f: Expr) = PDE1(a, b, c, f)
-  def secondOrder(a: Expr, b: Expr, c: Expr, f: Expr, g: Expr, h: Expr, psi: Expr) :PDE
-  	= PDE2(a, b, c, f, g, h, psi)
-  	
+  def secondOrder(map: scala.collection.mutable.Map[Function, Expr]) :PDE
+  = PDE2(map)
+  
 }

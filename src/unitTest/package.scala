@@ -1,3 +1,0 @@
-package object unitTest {
-
-}

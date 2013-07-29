@@ -1,3 +1,4 @@
+/*
 package pde.variable;
 
     import pde.expression._
@@ -93,4 +94,4 @@ object Variable {
 	  				   else exp.eval(Map(function.vars(1) -> bounds.upper,x -> const))				   
 	  
 	}
-	
+*/	

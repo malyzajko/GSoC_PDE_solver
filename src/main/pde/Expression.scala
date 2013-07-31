@@ -44,37 +44,39 @@ sealed abstract class Expr {
     import scala.collection.mutable.Map
     val exp = Sub(this, e)
     val map = Map[Function, Expr]()
-    
+
+    def hasFunction(e: Expr): Boolean = e match {
+      case Pow(a, b) => hasFunction(a) || hasFunction(b)
+      case Mul(a, b) => hasFunction(a) || hasFunction(b)
+      case Add(a, b) => hasFunction(a) || hasFunction(b)
+      case Sub(a, b) => hasFunction(a) || hasFunction(b)
+      case Div(a, b) => hasFunction(a) || hasFunction(b)
+      case f: Function => true
+      case _ => false
+    }
     def update(u: Function, e: Expr) {
-      def hasFunction(e: Expr): Boolean = e match {
-        case Pow(a, b) => hasFunction(a) || hasFunction(b)
-        case Mul(a, b) => hasFunction(a) || hasFunction(b)
-        case Add(a, b) => hasFunction(a) || hasFunction(b)
-        case Sub(a, b) => hasFunction(a) || hasFunction(b)
-        case Div(a, b) => hasFunction(a) || hasFunction(b)
-        case f: Function => true
-        case _ => false
-      }
+
       if (map.contains(u)) {
         val old = map(u)
         map += (u -> Add(old, e))
       } else
         map += (u -> e)
     }
-    
+
     def splitUp(e: Expr){
       e match {
-	case Mul(a, b: Derivative)        => update(b, a)
-        case Mul(a, f: FunctionVariable)  => update(f, a)
+        case Mul(a, f: Function)          => update(f, a)
         case Mul(a, Powf(f: Function, c)) => update(Powf(f, c), a)
         case Mul(a, b)                    => update(noFunction, Mul(a, b))
-	case Add(a: Derivative, b)        => update(a, Const(1)); splitUp(b)
+	case Add(a: Function, b)          => update(a, Const(1)); splitUp(b)
 	case Add(a, b)                    => splitUp(a); splitUp(b)
-	case Sub(a: Derivative, b)        => update(a, Const(1)); splitUp(Neg(b))
-	case Sub(a, b)                    => splitUp(a); splitUp(b)
+	case Sub(a: Function, b)          => update(a, Const(1)); splitUp(Neg(b))
+	case Sub(a, b)               => {
+          if (hasFunction(a)) {splitUp(a); splitUp(Neg(b))}
+          else update(noFunction, Neg(Add(a, b)))}
+        case Neg(a: Function)             => update(a, Neg(Const(1)))
         case Neg(a)                       => splitUp(a)
-	case a: Derivative                => update(a, Const(1))
-        case f: FunctionVariable          => update(f, Const(1))
+        case f: Function                  => update(f, Const(1))
         case Powf(f: Function, c)         => update(Powf(f, c), Const(1))
         case Const(0)                     => update(noFunction, Zero)
         case _                            => update(noFunction, e)
@@ -104,18 +106,18 @@ sealed abstract class Expr {
 
     order match {
       case 1 => {
-        val c = if (map.contains(u)) map(u) else Zero
-        val a = if (map.contains(d(u, u.x))) map(d(u, u.t)) else Zero
-        val b = if (map.contains(d(u, u.t))) map(d(u, u.t)) else Zero
-        val f = if (map.contains(noFunction)) map(noFunction) else Zero
-        PDE.firstOrder(a, b, c, f)
+        PDE.firstOrder(map)
       }
       case 2 => {
         val nofunct = if (map.contains(noFunction)) map(noFunction) else Zero
         val noOrder = if (map.contains(u)) map(u) else Zero
         val dx = if (map.contains( d(u, u.x) ) ) map(d(u, u.x)) else Zero
         val dt = if (map.contains(d(u, u.t))) map(d(u, u.t)) else Zero
-        val dxt = if (map.contains( dd(u, u.x, u.t) ) ) map(dd(u, u.x, u.t)) else Zero
+        val dxt = if (map.contains( dd(u, u.x, u.t) ) && map.contains(dd(u, u.x, u.t)))
+          Add(map(dd(u, u.x, u.t)), map(dd(u, u.t, u.x)))
+        else if (map.contains(dd(u, u.x, u.t))) map(dd(u, u.x, u.t))
+        else if (map.contains(dd(u, u.t, u.x))) map(dd(u, u.t, u.x))
+        else Zero
         val dtx = if (map.contains( dd(u, u.x, u.t) ) ) map(dd(u, u.x, u.t)) else Zero
         val dxx = if (map.contains(dd(u, u.x, u.x) )) map(dd(u, u.x, u.x)) else Zero
         val dtt = if (map.contains(dd(u, u.t, u.t) )) map(dd(u, u.t, u.t)) else Zero
@@ -209,25 +211,5 @@ case class BFunction(fixed: fixVar, interval: From, u: condition) {
 object Expression{
   
   implicit def double2Const(c: Double) = Const(c)
-
-
-  def eval(e: Expr, vars: Map[NonFunctionVariable, Double]): Double = {
-    def evalapp(e: Expr): Double = e match {
-      case Zero => 0
-      case Pow(a, b) => pow(evalapp(a), evalapp(b))
-      case Mul(a, b) => evalapp(a) * evalapp(b)
-      case Div(a, b) => evalapp(a) / evalapp(b)
-      case Add(a, b) => evalapp(a) + evalapp(b)
-      case Sub(a, b) => evalapp(a) - evalapp(b)
-      case Neg(a)    => - evalapp(a)
-      case x @ NonFunctionVariable(name) => vars(x)
-      case Const(c) => c
-      case FunctionVariable(_, _, _) => throw new CannotEvaluateException
-      case d(u, x) => throw new CannotEvaluateException
-      case dd(u, x, t) => throw new CannotEvaluateException
-      case _ => throw new CannotEvaluateException
-    }
-    evalapp(e)
-  }
   
 }

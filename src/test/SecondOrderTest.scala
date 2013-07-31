@@ -31,15 +31,17 @@ object SecondOrderTest extends App {
   
   //Heat Equation
   println("\nHeat Equation:\n")
-  val heqn = d(u, t) === dd(u, x, x)
+  val heqn = d(u, t) === 4*dd(u, x, x)
   val boundary2 = new RectBoundary(
-    new BFunction(fixVar(t, 0), From(0, 50), condition(u, Sin(4*Pi*x))),
-    new BFunction(fixVar(t, 1), From(0, 50), condition(u, 0)),
+    new BFunction(fixVar(t, 0), From(0, 2), condition(u, Sin(3*Pi*x))),
+    new BFunction(fixVar(t, 1), From(0, 2), condition(u, 0)),
     new BFunction(fixVar(x, 0), From(0, 1), condition(u, 0)),
     new BFunction(fixVar(x, 1), From(0, 1), condition(u, 0))
   )
   
   val (solution2, err2) = Solver.solve(heqn, boundary2)
-  val realHSolution = (y: Double, z: Double) => scala.math.sin(4*Pi*y)*scala.math.exp(-16*Pi*Pi*z)
-  
+  val realHSolution = (y: Double, z: Double) => scala.math.sin(2*Pi*y)*scala.math.exp(-4*Pi*Pi*z)
+
+  println("Generated Point (0.1, 0.5): " + solution2(1)(1))
+  println("Real: " + realHSolution(0.01, 0.5))
 }

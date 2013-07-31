@@ -225,6 +225,11 @@ DOCS/intro.aux
 DOCS/intro.log
 DOCS/intro.synctex.gz
 DOCS/*.pdf        
+DOCS/Report/auto/
+DOCS/Report/intro.aux
+DOCS/Report/intro.log
+DOCS/Report/intro.synctex.gz
+DOCS/Report/*.pdf  
 
 ############
 ## SCALA

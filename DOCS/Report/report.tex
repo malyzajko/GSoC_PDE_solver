@@ -1,0 +1,188 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage[margin=1in]{geometry}
+
+\usepackage{enumerate}
+\title{PDE Solver Mid-Term Report}
+\date{}
+\begin{document}
+\maketitle
+\newcommand{\expr}{{\ttfamily Expr}}
+\newcommand{\code}[1]{{\ttfamily #1}}
+
+\section{Week by Week Summary}
+This is an approximate week by week summary of the work which has been
+done thus far. Since this summary was written after 5 weeks of work
+based on memory, some past details may be innacurate. 
+\begin{itemize}
+    
+    
+\item[June 17th:] \begin{itemize}
+        
+    \item Began the project by implementing a solver for elliptical
+        2nd order bivariate pdes. The pdes we're initially stored as a
+        series of functions, similarly for the boundaries.
+    \item This usage was very unatural, so I was advised to change
+        it. The code written during this week used later on with
+        almost no modificaitons.
+    \end{itemize}
+    
+    
+\item[June 24th:]\begin{itemize}
+        
+    \item Most of this week was spent designing the interface and structure of the
+        solver.
+
+    \item I considered making a parser to convert strings to pde
+        objects, but a DSL seemed more effective. 
+        
+    \item Instead of storing a pde as a set of functions, it is now a
+        set of \expr's (Expressions). \expr's are abstract syntax
+        trees representing algebraic expressions.
+        
+    \item This also allowed for the distinction between function
+        variables (\code{FunctionVariable}) and other variables
+        (\code{NonFunctionVariable}).
+
+    \item The syntax for a pde would be something like:
+        
+        \code{val laplace = dd(u, x, x) + dd(u, t, t) === 0}
+        
+        where \code{u} has already been defined as a function variable,
+        and \code{x} and \code{t} have already been set as
+        non-function variables.
+        \code{dd} and \code{d} are classes used to represent
+        derivatives. \code{===} is an \expr method which takes in as
+        input another \expr, in this case \code{Const(0)}, and spits
+        out a pde.
+        
+    \item The code for most expression and variable code was all
+        written this week.
+    \end{itemize}
+
+\item[July 1st:]\begin{itemize}
+
+    \item Implemented methods to evaluate expression. The method takes
+        as input a map from non-function variables and evaluates the
+        syntax tree as needed.
+
+    \item Redesigned and wrote the code for boundary
+        functions. Initially a boundary was also defined through some
+        awkward combination of functions and tuples which depended
+        heavily on the order in which the functions we're passed in.
+
+        A rectangular boundary is now composed of multiple
+        \code{BFunction}'s (Boundary Functions). These would look like
+        
+        \code{new BFunction(fixVar(x, 0), From(0, 10), condition(u,
+            0))}
+
+        in math this would look like
+        \begin{align*}
+            u(0, t) & = 0& 0<t<10
+        \end{align*}
+
+    \item Implemented the code to split up an expression into it's
+        derivative terms and then convert it to a pde. 
+    \end{itemize}
+
+    
+\item[July 8th:]\begin{itemize}
+
+    \item Started implementing a data type for values with error
+        associated with them. I decided to read up more about similar
+        implementations, but I forgot about them while working on
+        other parts of the code.
+        
+    \item Reimplemented the code for solving elliptical equations.
+        Most of it was exactly the same as done in the first week. For
+        now what's returned is a tuple of 2 2D arrays of doubles. One
+        for the solution and one for the error associated with each
+        point.
+
+    \item Tested the solver with Laplace's equation with fairly simple
+        boundary conditions. Solving for Laplace's equation went
+        well with no notable problems.  
+
+    \item The boundary assertions had to be loosened for approximately
+        equals due to truncation differences between doubles. 
+    \end{itemize}
+    
+\item[July 15th:]\begin{itemize}
+
+    \item For clarity sake, the constructor for a pde no longer takes
+        in multiple expressions. The constructor was changed to accept
+        a \code{Map[Function, Expr]}. A \code{Function} is either a
+        \code{FunctionVariable}, \code{d}, \code{dd} or
+        \code{noOrder}. Where \code{noOrder} is a \code{Function} object 
+        with the sole purpose of identifying that part of the pde. In
+        \begin{align*}
+            \alpha u_{xx}+\beta u_{tt}+\gamma u_{xt}+\zeta u_x + \nu
+            u_t + \xi u + f(x, t) = 0
+        \end{align*}
+        $f(x, t)$ would be \code{noOrder}.
+
+        
+    \item Implemented a solver for general bivariate pdes. Only the
+        elliptical case has been covered and various code surrounding
+        validity intervals are still in the works. If the function
+        only has valid constant coefficients then it works right now. 
+    \end{itemize}
+\item[July 22th:]\begin{itemize}
+
+    \item Implemented a solver for first order PDEs. Tested with a
+        fairly simple example, but it works fine. The error code still
+        has to be worked in since it is just a rework of Laplace's
+        error right now. 
+        
+    \item Continued work on the error value data type and the solution. The class
+        should work such that.
+\begin{verbatim}
+val point56 = solution(5,6)
+// point56 = 1.2 +/- 0.4
+val noErrorAdd = point56 + 2.0
+// 3.2 +/- 0.4
+solution(-1000, -1000)
+// throws out of bounds exception
+\end{verbatim}
+        So the solution is stored in a data type where one can
+        retrieve the value of all points within bounds. This value is
+        returned in a new data type (\code{errorVal}). \code{errorVal}
+        interacts with \code{Doubles} by while keeping the same
+        error. \code{errorVal} interacts with others of the same type
+        by adding the errors appropriately.
+        
+    \end{itemize}
+
+\item[July 29th]\begin{itemize}
+
+    \item Wrote this report.
+    \item Started a cleanup of the code. Lots of the ideas we're added
+        on-the-fly to test an idea. Unfortunately the ideas which
+        were kept were left in the code in their experimental forms. 
+    \end{itemize}
+    
+\end{itemize}
+\section{TODO}
+\begin{itemize}
+
+\item[More Testing:] Most of the examples I've tested on we're fairly
+    simple ones. Some more complicated examples should probably be
+    tested on. This would also include writting a propper unit testing
+    section instead of just printing to the command line.
+
+\item[\code{errorVal}:] This data type still has to be properly
+    implemented. As well as the container for the solution.
+    
+\item[Errors:] Fix the error calculation on some of the points. 
+
+\item[Speed Testing:] I haven't really tested much in terms of
+    speed. I've messed arround with the step sizes and max iterations,
+    but that was mostly so that I could get an idea of what's
+    happening in a reasonable time.
+
+\item[Comments:] Comments should probably be sprinkled here and there
+    to explain some of the code. 
+\end{itemize}
+\end{document}

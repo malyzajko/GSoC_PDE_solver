@@ -1,22 +1,24 @@
+//TBD
 package pde
 
-import pde.expression._
+import pde.expression.{Function, Expr, FunctionVariable, dd, d, noFunction, Zero}
 
-class PDE1 extends PDE 
+class PDE1 extends PDE
 
 object PDE1 {
-  
-  def apply (map: scala.collection.mutable.Map[Function, Expr]) = new LinearPDE1(map)
-  
+
+  def apply(map: scala.collection.immutable.Map[Function, Expr]): LinearPDE1 = new LinearPDE1(map)
+
 }
 
-class LinearPDE1(val map: scala.collection.mutable.Map[Function, Expr]) extends PDE1 {
+class LinearPDE1(val map: scala.collection.immutable.Map[Function, Expr]) extends PDE1 {
   val function = {
     def getFunction(kss: List[Function]): FunctionVariable = kss match {
       case (f: FunctionVariable)::ks => f
       case d(f, _)::ks               => f
       case dd(f, _, _)::ks           => f
       case k::ks                     => getFunction(ks)
+      case Nil                       => throw new NotAPDEException
     }
     getFunction(map.keys.toList)
   }

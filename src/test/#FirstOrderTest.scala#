@@ -27,5 +27,5 @@ object FirstOrderTest extends App {
   println("Real: " + realSolution(5,5))
   println("Generated Point(9.9, 9.9): " + solution(99)(99))
   println("Real: " + realSolution(9.9,9.9))
-
+  
 }

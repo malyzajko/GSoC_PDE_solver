@@ -1,0 +1,29 @@
+;; -*- mode: emacs-lisp; coding: emacs-mule; -*-
+;; --------------------------------------------------------------------------
+;; Desktop File for Emacs
+;; --------------------------------------------------------------------------
+;; Created Fri Aug 02 18:30:18 2013
+;; Desktop file format version 206
+;; Emacs version 24.1.1
+
+;; Global section:
+(setq desktop-missing-file-warning nil)
+(setq tags-file-name nil)
+(setq tags-table-list nil)
+(setq search-ring nil)
+(setq regexp-search-ring nil)
+(setq register-alist nil)
+(setq file-name-history nil)
+
+;; Buffer section -- buffers listed in same order as in buffer list:
+(desktop-create-buffer 206
+  "a:/GSOC - PDE Solver/GSoC_PDE_solver/project/plugins.sbt"
+  "plugins.sbt"
+  'scala-mode
+  '(auto-indent-minor-mode auto-complete-mode autopair-mode linum-mode)
+  163
+  '(1 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-file-coding-system . utf-8-dos)))
+

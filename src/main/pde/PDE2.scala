@@ -1,26 +1,29 @@
+//TBD
 package pde
 
-import pde.expression._
+import pde.expression.{Function, Expr, FunctionVariable, dd, d, noFunction, Zero, Const}
+
 class PDE2 extends PDE
 
 object PDE2 {
 
-  def apply (map: scala.collection.mutable.Map[Function, Expr]) : PDE =
+  def apply (map: scala.collection.immutable.Map[Function, Expr]) : PDE2 =
     new LinearPDE2(map)
 
 }
 
-class LinearPDE2(map: scala.collection.mutable.Map[Function, Expr]) extends PDE2 {
+class LinearPDE2(map: scala.collection.immutable.Map[Function, Expr]) extends PDE2 {
   val u = {
     def getFunction(kss: List[Function]): FunctionVariable = kss match {
       case (f: FunctionVariable)::ks => f
       case d(f, _)::ks               => f
       case dd(f, _, _)::ks           => f
       case k::ks                     => getFunction(ks)
+      case Nil                       => throw new NotAPDEException
     }
     getFunction(map.keys.toList)
   }
-  
+
   val noFunct = if (map.contains(noFunction)) map(noFunction) else Zero
   val noOrder = if (map.contains(u)) map(u) else Zero
   val dx = if (map.contains( d(u, u.x) ) ) map(d(u, u.x)) else Zero
@@ -31,7 +34,9 @@ class LinearPDE2(map: scala.collection.mutable.Map[Function, Expr]) extends PDE2
 }
 
 case class Laplace2 (function: FunctionVariable)
-    extends LinearPDE2(scala.collection.mutable.Map(dd(function, function.x, function.x) -> Const(1),
-      dd(function, function.t, function.t) -> Const(1))){
+    extends LinearPDE2(scala.collection.immutable.Map(dd(function, function.x, function.x) -> Const(1),
+      dd(function, function.t, function.t) -> Const(1)))
 
-}
+case class Poisson2 (function: FunctionVariable, f: Expr)
+    extends LinearPDE2(scala.collection.immutable.Map(dd(function, function.x, function.x) -> Const(1),
+      dd(function, function.t, function.t) -> Const(1), noFunction -> f))

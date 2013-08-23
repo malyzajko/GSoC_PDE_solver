@@ -14,3 +14,4 @@ scalacOptions += "-deprecation"
 fork in Test := true
 
 
+org.scalastyle.sbt.ScalastylePlugin.Settings

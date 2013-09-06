@@ -11,7 +11,14 @@ scalaSource in Test <<= baseDirectory(_ / "src/test")
 
 scalacOptions += "-deprecation"
 
-fork in Test := true
+scalacOptions += "-unchecked"
 
+fork := true
+
+javaOptions += "-Djava.library.path=lib/"
+
+javaOptions += "-XX:+UseConcMarkSweepGC"
 
 org.scalastyle.sbt.ScalastylePlugin.Settings
+
+libraryDependencies += "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test"

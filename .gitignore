@@ -1,7 +1,7 @@
 #################
 ## Eclipse
 #################
-.gitignore      
+.gitignore
 .gitattributes
 *.pydevproject
 .project
@@ -224,12 +224,12 @@ DOCS/auto/
 DOCS/intro.aux
 DOCS/intro.log
 DOCS/intro.synctex.gz
-DOCS/*.pdf        
+DOCS/*.pdf
 DOCS/Report/auto/
 DOCS/Report/intro.aux
 DOCS/Report/intro.log
 DOCS/Report/intro.synctex.gz
-DOCS/Report/*.pdf  
+DOCS/Report/*.pdf
 
 ############
 ## SCALA
@@ -243,3 +243,4 @@ target/*
 bin/*
 src/Test.scala
 src/.emacs.desktop
+src/ceres

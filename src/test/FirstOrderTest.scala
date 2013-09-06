@@ -2,20 +2,20 @@ object FirstOrderTest extends App {
   import pde._
   import pde.expression._
   import pde.boundary._
-  import pde.expression.Expression.double2Const
   import scala.math.Pi
-  import pde.expression.Expression.{double2IntervalMaker =>a}
-  import pde.expression.Expression._
+  import pde.expression.Expr.{double2Const, ciT2BFunction}
+  import pde.expression.Expr._
+  import pde.expression.{to}
 
-  val x = new Variable("x")
+  val x = Variable("x")
   val t = Variable("t")
   val u = new FunctionVariable("u", x, t)
   val testPDE = t*d(u, t) + x*d(u, x)  - u := 0
   val boundary = new RectBoundary(
-    (u(0, t) := 3*t, a(0) to 10),
-    (u(10, t):=20+3*t, a(0) to 10),
-    (u(x, 0) := 2*x, a(0) to 10),
-    (u(x, 10):= 2*x+30, a(0) to 10)
+    (u(0, t) := 3*t, to(0, 10)),
+    (u(10, t):=20+3*t, to(0, 10)),
+    (u(x, 0) := 2*x, to(0, 10)),
+    (u(x, 10):= 2*x+30, to(0, 10))
   )
   val realSolution = (x: Double, t: Double) =>2*x+3*t
   val solution = Solver.solve(testPDE, boundary)

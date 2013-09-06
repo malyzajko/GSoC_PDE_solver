@@ -1,4 +1,4 @@
-//TBD
+/*/TBD
 package pde.errorVal;
 import pde.expression.{BFunction}
 import pde.boundary.{RectBoundary}
@@ -8,27 +8,11 @@ class OutOfBoundsException extends Exception
 class errorData(val data: Array[Array[ErrorVal]], boundary: RectBoundary){
 
   private val f = boundary.b1.u.function
-  private val (bottom: BFunction, top: BFunction, left: BFunction, right: BFunction) = {
-    var sorted = (scala.collection.mutable.ArrayBuffer
-      (boundary.b1, boundary.b2, boundary.b3, boundary.b4)).sortWith(
-      (a, b) => a.lowerPoint(f.t) < b.lowerPoint(f.t))
-    val bot = sorted.find ( b => f.t == b.u.fixed ) match {
-      case Some(b) => b
-      case _ => throw new Exception
-    }
-    val tp = sorted.last
-    sorted -= (bot, tp)
-    sorted = sorted.sortWith(
-      (a, b) => a.lowerPoint(f.x) < b.lowerPoint(f.x))
-    val lef = sorted.head
-    val rig = sorted.last
-    (bot, tp, lef, rig)
-  }
-
-  private val xmin = bottom.interval.a
-  private val xmax = bottom.interval.b
-  private val tmin = left.interval.a
-  private val tmax = left.interval.b
+  import boundary.{bottom, top, left, right}
+  private val xmin = bottom.interval.lo
+  private val xmax = bottom.interval.hi
+  private val tmin = left.interval.lo
+  private val tmax = left.interval.hi
 
   def apply(x: Double, t: Double): ErrorVal = {
     if (x < xmin || x > xmax || t < tmin || t > tmax) throw new OutOfBoundsException
@@ -40,12 +24,13 @@ class errorData(val data: Array[Array[ErrorVal]], boundary: RectBoundary){
 
 sealed abstract class ErrorVal
 
-object AffineVal {
+object AffineDouble {
 
   private var counter = 0
 
 
-  def apply(c: Double)(cs: Array[AffineCoefficient]): AffineVal = new AffineVal(c, cs)
+  def apply(c: Double)(cs: Array[AffineCoefficient]): AffineDouble = new AffineDouble(c, cs)
+  def unapply(x: AffineDouble) = Some((x.x0, x.coefficients))
 
   object AffineCoefficient {
     //reserved indices
@@ -62,17 +47,24 @@ object AffineVal {
     }
 
     def apply(c: Double, index: Int): AffineCoefficient = new AffineCoefficient(c, index)
+
+    def apply(c: Double): AffineCoefficient = new AffineCoefficient(c)
+
   }
 
-  sealed class AffineCoefficient(val value: Double, InputIndex: Int = -1){
+  sealed class AffineCoefficient(val deviation: Double, InputIndex: Int = -1){
     val index = if (InputIndex == -1) {
-      val temp = AffineVal.counter
-      AffineVal.counter += 1
+      val temp = AffineDouble.counter
+      AffineDouble.counter += 1
       temp
+    }
+    else if (InputIndex > AffineDouble.counter){
+      AffineDouble.counter = InputIndex + 1
+      InputIndex
     }
     else InputIndex
 
-    def *(c: Double) = AffineCoefficient(value*c, index)
+    def *(c: Double) = AffineCoefficient(deviation*c, index)
 
     override def equals(other: Any) = other match {
       case that: AffineCoefficient => (index == that.index)
@@ -80,40 +72,51 @@ object AffineVal {
     }
   }
 
+  // def compact(coeffs: Array[AffineCoefficient]): Array[AffineCoefficient] = {
+  //   def compactApp(ccs: Array[AffineCoefficient]): Array[AffineCoefficient] = {
+  //   }
+  //   val (smaller, greater) = coeffs.partition(a => a.value < Math.pow(2, -49))
+  //   val compactedSmaller = compactApp(smaller)
+  //   val avg = greater.sum/greater.length
+  //   val std = Math.sqrt(greater.map(a => Math.pow(a-avg, 2)).sum)
+  //   val (recompact, keep) = greater.partition(a => a.value < avg + std)
+  //   val res2 = compactApp(recompact)
+  // }
+
 }
 
-class AffineVal(val centralValue: Double, val coefficients: Array[AffineVal.AffineCoefficient])
+class AffineDouble(val x0: Double, val coefficients: Array[AffineDouble.AffineCoefficient])
     extends ErrorVal {
 
-  import AffineVal.{AffineCoefficient}
+  import AffineDouble.{AffineCoefficient}
 
-  def unary_- = AffineVal(-this.centralValue)(
-    this.coefficients.map(a => AffineCoefficient(-a.value, a.index)))
+  def unary_- = AffineDouble(-this.x0)(
+    this.coefficients.map(a => AffineCoefficient(-a.deviation, a.index)))
 
-  private def containsCoeff(coeffs: Array[AffineCoefficient], coeff: AffineCoefficient) = {
-    coeffs.find( (b: AffineCoefficient) => b.index == coeff.index ) match {
+  private def containsCoeff(x: AffineDouble, coeff: AffineCoefficient) = {
+    x.coefficients.find( (b: AffineCoefficient) => b.index == coeff.index ) match {
       case Some(a) => true
       case _ => false
     }
   }
 
-  private def getCoefficient(cs: Array[AffineCoefficient], c: AffineCoefficient) = {
-    cs(cs.indexOf(c, 0))
+  private def getCoefficient(cs: AffineDouble, c: AffineCoefficient) = cs match{
+    case AffineDouble(x, xs) => xs(xs.indexOf(c, 0))
   }
 
-  private def CoefficientOpp(x: Array[AffineCoefficient],
-    y: Array[AffineCoefficient],
+  private def CoefficientOpp(x: AffineDouble,
+    y: AffineDouble,
     fn: (AffineCoefficient, AffineCoefficient) => AffineCoefficient) = {
 
-    val commonCoefficients = for(coeff <- x
+    val commonCoefficients = for(coeff <- x.coefficients
       if containsCoeff(y, coeff))
     yield fn(coeff, getCoefficient(y, coeff))
 
-    val xOnly = for (coeff <- x
+    val xOnly = for (coeff <- x.coefficients
       if !containsCoeff(y, coeff))
     yield coeff
 
-    val yOnly = for (coeff <- y
+    val yOnly = for (coeff <- y.coefficients
       if !containsCoeff(x, coeff))
     yield coeff
 
@@ -122,54 +125,64 @@ class AffineVal(val centralValue: Double, val coefficients: Array[AffineVal.Affi
     )
   }
 
-  def +(b: AffineVal) = AffineVal(this.centralValue + b.centralValue)(
-    CoefficientOpp(coefficients, b.coefficients,
-      (a, b) => new AffineCoefficient((a.value+b.value), a.index)))
+  def +(b: AffineDouble) = {
 
-  def -(b: AffineVal) = AffineVal(this.centralValue - b.centralValue)(
-    CoefficientOpp(coefficients, b.coefficients,
-      (a, b) => new AffineCoefficient((a.value-b.value), a.index)))
-
-  def *(that: AffineVal) = {
-
-    val commonCoefficients = for (coeff <- this.coefficients
-      if containsCoeff(that.coefficients, coeff))
-    yield new AffineCoefficient(centralValue*getCoefficient(that.coefficients, coeff).value
-      + that.centralValue*coeff.value, coeff.index)
-
-    val thisOnly = for (coeff <- this.coefficients
-      if !containsCoeff(that.coefficients, coeff))
-    yield coeff
-
-    val thatOnly = for (coeff <- that.coefficients
-      if !containsCoeff(this.coefficients, coeff))
-    yield coeff
-
-    val crossTerms = {
-      val sumThis = this.coefficients.foldLeft(0.0)((a: Double, b: AffineCoefficient) => a + b.value.abs)
-      val sumThat = that.coefficients.foldLeft(0.0)((a: Double, b: AffineCoefficient) => a + b.value.abs)
-      new AffineCoefficient(sumThis*sumThat)
-    }
-    val temp = commonCoefficients ++ thisOnly ++ thatOnly
-    AffineVal(this.centralValue*that.centralValue)((temp.+:(crossTerms)).sortWith(
-      (a: AffineCoefficient, b: AffineCoefficient) => a.index < b.index))
+    AffineDouble(this.x0 + b.x0)(
+      CoefficientOpp(this, b,
+        (a, b) => new AffineCoefficient((a.deviation+b.deviation), a.index)))
   }
 
-  def +(c: Double) = AffineVal(this.centralValue+c)(this.coefficients)
-  def -(c: Double) = AffineVal(this.centralValue-c)(this.coefficients)
+  def -(b: AffineDouble) = AffineDouble(this.x0 - b.x0)(
+    CoefficientOpp(this, b,
+      (a, b) => new AffineCoefficient((a.deviation-b.deviation), a.index)))
 
-  def *(c: Double) = AffineVal(this.centralValue*c)(
-    this.coefficients.map(a => AffineCoefficient(a.value*c, a.index)))
+  def *(that: AffineDouble) = {
 
-  def /(c: Double) = AffineVal(this.centralValue/c)(
-    this.coefficients.map(a => AffineCoefficient(a.value/c, a.index)))
+    val commonCoefficients = for(coeff <- coefficients
+      if containsCoeff(that, coeff))
+    yield new AffineCoefficient(coeff.deviation * that.x0
+      + getCoefficient(that, coeff).deviation * x0, coeff.index)
+
+    val thisOnly = for (coeff <- this.coefficients
+      if !containsCoeff(that, coeff))
+    yield coeff * that.x0
+
+    val thatOnly = for (coeff <- that.coefficients
+      if !containsCoeff(this, coeff))
+    yield coeff * x0
+
+    val crossTerms = {
+      val sumThis = this.coefficients.foldLeft(0.0)((a: Double, b: AffineCoefficient) => a + b.deviation.abs)
+      val sumThat = that.coefficients.foldLeft(0.0)((a: Double, b: AffineCoefficient) => a + b.deviation.abs)
+      new AffineCoefficient(sumThis*sumThat)
+    }
+    val temp = (commonCoefficients ++ thisOnly ++ thatOnly).+:(crossTerms)
+
+    // if (temp.size >= 50) {
+    //   val compacted = compact(coefficients)
+    AffineDouble(this.x0*that.x0)(temp)
+  }
+
+
+
+  def +(c: Double) = AffineDouble(this.x0+c)(this.coefficients)
+  def -(c: Double) = AffineDouble(this.x0-c)(this.coefficients)
+
+  def *(c: Double) = AffineDouble(this.x0*c)(
+    this.coefficients.map(a => AffineCoefficient(a.deviation*c, a.index)))
+
+  def /(c: Double) = AffineDouble(this.x0/c)(
+    this.coefficients.map(a => AffineCoefficient(a.deviation/c, a.index)))
 
   override def toString = {
-    val sum = coefficients.foldLeft(0.0)((a: Double, b: AffineCoefficient) => a + b.value.abs)
-    val min = centralValue - sum
-    val max = centralValue + sum
+    val sum = coefficients.foldLeft(0.0)((a: Double, b: AffineCoefficient) => a + b.deviation.abs)
+    val sorted = coefficients.sortWith((a, b) => a.index < b.index)
+    val min = x0 - sum
+    val max = x0 + sum
+    //val cfs = for (coeff <- sorted) yield "AffineCoefficient(" + coeff.deviation + "," +coeff.index + "))"
 
-    "[" + min + ", " + max + "] " + centralValue
+    "[" + min + ", " + max + "] " + x0
+    //"AffineDouble("+x0 +")(Array(" + cfs.mkString(",") + "))"
   }
 }
 
@@ -184,4 +197,10 @@ case class IntervalVal(min: Double, max: Double) extends ErrorVal{
   def /(that: IntervalVal) = if (that.min <= 0 && that.max >= 0) throw new Exception
   else this * IntervalVal(1/that.min, 1/that.max)
 
+  def +(c: Double) = IntervalVal(min+c, max+c)
+  def -(c: Double) = IntervalVal(min-c, max-c)
+  def *(c: Double) = IntervalVal(min*c, max*c)
+  def /(c: Double) = IntervalVal(min/c, max+c)
+
 }
+ */

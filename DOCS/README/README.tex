@@ -376,7 +376,49 @@ In this case the weights are the inverse distance from the closest
 grid-point. The closer the grid-point is to the desired value, the
 heavier it weights in the average.
 \section{Experimental Results}
+As far as the results go, for the examples that have been tested it
+seems to work well, but there is admitedly many more PDEs it could be
+tested on. In the examples above, we can see that for first order
+PDEs, the results are within the error interval of the analytic solution. For
+the Laplace's equation and other second order equations, the
+truncation error may be underestimated, since the error computed is
+more of an order of magnitude error than an absolute one.
 
+\subsection{Speed}
+Various tests we're done regarding how big the grid can be before it
+becomes unfeasible to use the solver. Without increasing Java's
+default heap space, the maximum size grid possible is in the
+whereabouts of 1250 by 1250.
+
+In terms of speed, there are equivalent solvers for first order
+solutions using \verba{Double}s instead of \verba{SmartFloat}s. The
+speed increase when computing using normal floating-points is about 10
+times faster.
+
+\section{Further Work}
+Due to time restraints, not all PDEs can actually be solved using this
+solver. The ones which do work are: first order equations, Laplace's
+equation, Poisson's equation and the heat equation whith scalars. The
+work is there for general heat equations, but the computation time was
+horrendous. For the heat equation, one must solve an $n\times n$
+tridiagonal matrix at each time step. Though this can be done in
+linear time, when the matrix is of size $1000\times1000$ it is
+incredibly slow. With scalars, the matrix does not have to be
+regenerated at each time step, only the result column has to be
+computed. Other specific 2nd order equations have yet to be
+implemented. The reason for implementing specific solver functions is
+for optimization. Solving general equations all the time is
+computationally inefficient.
+
+For general 2nd order equations, one would have to solve a slightly more
+general matrix, which has not yet been implemented yet. In addition to
+this, other things which would have to be implemented are solving
+using Newman boundary conditions, where one specifies $\pd{u}{x}$ at
+some points. In terms of boundaries, more general boundaries may also
+want to be specified by the user. As it is now, the boundaries are
+very rigid in their definition.
+Spherical coordinates could also be usefull for radial
+Laplace's equation.
 
 \begin{thebibliography}{9}
 

@@ -8,7 +8,7 @@ import SmartFloat.double2SmartFloat
 sealed abstract class PDE {
   val function: Function
 }
-  
+
 case class NotAPDEException()        extends Exception
 
 object PDE {
@@ -22,13 +22,13 @@ object PDE {
 
 }
 
-// First Order PDEs 
+// First Order PDEs
 
 
 abstract class PDE1 extends PDE
 
 object PDE1 {
-  
+
   def apply(map: scala.collection.immutable.Map[Function, Expr]): LinearPDE1 = new LinearPDE1(map)
 
 }
@@ -49,27 +49,27 @@ class LinearPDE1(val map: scala.collection.immutable.Map[Function, Expr]) extend
   val noOrder = if (map.contains(function)) map(function) else Zero
   val dx = if (map.contains( d(function, function.x) ) ) map(d(function, function.x)) else Zero
   val dt = if (map.contains(d(function, function.t))) map(d(function, function.t)) else Zero
-  
+
   override def toString() : String = {
     val dtString = dt match {
       case Zero => ""
       case Neg(Const(c)) =>
-        if (c == 0.0) "" else   dt + " * " + function + "_t" 
+        if (c == 0.0) "" else   dt + " * " + function + "_t"
       case Const(c) =>
-        if (c.d == 0.0) "" else dt + " * " + function + "_t" 
+        if (c.d == 0.0) "" else dt + " * " + function + "_t"
       case a => "(" + dt + ") * " + function + "_t"
       }
       val dxString = dx match {
         case Zero => ""
         case Neg(Const(c)) =>
-          if (c == 0.0) "" else   dx + " * " + function + "_x" 
+          if (c == 0.0) "" else   dx + " * " + function + "_x"
         case Const(c) =>
           if (c == 0.0) "" else   dx + " * " + function + "_x"
-        case a => "(" + dx + ") * " +function+ "_x" 
+        case a => "(" + dx + ") * " +function+ "_x"
       }
       val noOrderString = noOrder match {
         case Zero  => ""
-        case Const(c) => 
+        case Const(c) =>
           if (c.d == 0.0) "" else noOrder + " * " + function
         case a => "(" + noOrder + ") * " + function
       }
@@ -84,13 +84,13 @@ class LinearPDE1(val map: scala.collection.immutable.Map[Function, Expr]) extend
         result ++= " + " + str
       }
       if(noFunctString != "") result ++= " + " + noFunctString
-      
+
       result + " = 0"
-      
+
     }
   }
 
-  // Second Order PDEs 
+  // Second Order PDEs
 
   abstract class PDE2 extends PDE
 
@@ -130,54 +130,54 @@ class LinearPDE1(val map: scala.collection.immutable.Map[Function, Expr]) extend
           else new ScalarHyperbolic(a, b, c, d, e, f, g, u)
         case _ => PDE.secondOrder(dtt, dxt, dxx, dt, dx, noOrder, nofunct, u)
       }
-      
+
     }
 
   }
 
   class LinearPDE2(val dtt: Expr, val dxt: Expr, val dxx: Expr,
                    val dt: Expr, val dx: Expr, val noOrder: Expr, val noFunct: Expr, f: FunctionVariable) extends PDE2 {
-    
+
     val function = f
-    
+
     override def toString() : String = {
       val dttString = dtt match {
         case Zero => ""
         case Const(c) =>
-          if (c.d == 0.0) "" else dtt + " * " + f + "_tt" 
+          if (c.d == 0.0) "" else dtt + " * " + f + "_tt"
         case a => "(" + dtt + ") * " + f + "_tt"
       }
       val dxtString = dxt match {
         case Zero => ""
         case Const(c) =>
-          if (c.d == 0.0) "" else  dxt + " * " + f + "_xt" 
-        case a => "(" + dxt + ") * " + f + "_xt" 
+          if (c.d == 0.0) "" else  dxt + " * " + f + "_xt"
+        case a => "(" + dxt + ") * " + f + "_xt"
       }
       val dxxString = dxx match {
         case Zero => ""
         case Const(c) =>
-          if (c.d == 0.0) "" else dxx + " * " + f + "_xx" 
-        case a => "(" + dxx + ") * " + f + "_xx" 
+          if (c.d == 0.0) "" else dxx + " * " + f + "_xx"
+        case a => "(" + dxx + ") * " + f + "_xx"
       }
       val dtString = dt match {
         case Zero => ""
         case Neg(Const(c)) =>
-          if (c == 0.0) "" else   dt + " * " + f + "_t" 
+          if (c == 0.0) "" else   dt + " * " + f + "_t"
         case Const(c) =>
-          if (c.d == 0.0) "" else dt + " * " + f + "_t" 
+          if (c.d == 0.0) "" else dt + " * " + f + "_t"
         case a => "(" + dt + ") * " + f + "_t"
       }
       val dxString = dx match {
         case Zero => ""
         case Neg(Const(c)) =>
-          if (c == 0.0) "" else   dx + " * " + f + "_x" 
+          if (c == 0.0) "" else   dx + " * " + f + "_x"
         case Const(c) =>
-          if (c == 0.0) "" else   dx + " * " + f + "_x" 
-        case a => "(" + dx + ") * " + f + "_x" 
+          if (c == 0.0) "" else   dx + " * " + f + "_x"
+        case a => "(" + dx + ") * " + f + "_x"
       }
       val noOrderString = noOrder match {
         case Zero  => ""
-        case Const(c) => 
+        case Const(c) =>
           if (c.d == 0.0) "" else noOrder + " * " + f
         case a => "(" + noOrder + ") * " + f
       }
@@ -193,10 +193,10 @@ class LinearPDE1(val map: scala.collection.immutable.Map[Function, Expr]) extend
         result ++= " + " + str
       }
       if(noFunctString != "") result ++= " - " + noFunctString
-      
+
       result + " = 0"
-        
-    } 
+
+    }
   }
 
   class ScalarLinear2(dtt: SmartFloat, dxt: SmartFloat,  dxx: SmartFloat,

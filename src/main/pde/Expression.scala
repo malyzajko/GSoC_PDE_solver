@@ -4,26 +4,26 @@ import pde.model.PDE
 import Math._
 import collection.immutable.HashMap
 import ceres.smartfloat.{SmartFloat}
-
+import ceres.smartfloat.SmartFloat.double2SmartFloat
+import scala.collection.mutable.Map
 
 case class CannotEvaluateException() extends Exception
 
 
 sealed abstract class Expr {
   import Expr.{double2Const}
-  import ceres.smartfloat.SmartFloat.double2SmartFloat
 
-  def ^(e: Expr) = this match {
+  def ^(e: Expr): Expr = this match {
     case f: Function => Powf(f, e)
     case _           => Pow(this, e)
   }
-  def *(e: Expr) = Mul(this, e)
-  def /(e: Expr) = Div(this, e)
-  def +(e: Expr) = Add(this, e)
-  def -(e: Expr) = Sub(this, e)
-  def unary_- = Neg(this)
+  def *(e: Expr): Expr = Mul(this, e)
+  def /(e: Expr): Expr = Div(this, e)
+  def +(e: Expr): Expr = Add(this, e)
+  def -(e: Expr): Expr = Sub(this, e)
+  def unary_-   : Expr = Neg(this)
 
-  def expr2Function2 = {
+  def expr2Function2: ((Tuple2[Variable, Double], Tuple2[Variable, Double]) => SmartFloat) = {
     def evalapp(e: Expr): ((Tuple2[Variable, Double], Tuple2[Variable, Double]) => SmartFloat)
     = e match {
       case Zero => (x, y) => 0
@@ -50,7 +50,7 @@ sealed abstract class Expr {
     }
     evalapp(this)
   }
-  
+
   def eval(var1: Tuple2[Variable, Double], var2: Tuple2[Variable, Double]): SmartFloat = {
     def evalapp(e: Expr): ((SmartFloat, SmartFloat) => SmartFloat) = e match {
       case Zero => (x, y) => 0
@@ -77,12 +77,11 @@ sealed abstract class Expr {
     }
     val fn = evalapp(this)
     fn(var1._2, var2._2)
-    
+
     //TODO test speed of this function
   }
-  
+
   def :=(e: Expr): PDE  = {
-    import scala.collection.mutable.Map
     val exp = Sub(this, e)
     val map = Map[Function, Expr]()
 
@@ -95,16 +94,16 @@ sealed abstract class Expr {
       case f: Function => true
       case _ => false
     }
-    def update(u: Function, e: Expr) = e match {
+    def update(u: Function, e: Expr): Unit = e match {
       case Zero => ()
-        case _    =>
-          if (map.contains(u)) {
-            val old = map(u)
-            map += (u -> Add(old, e))
-          } else
-            map += (u -> e)
+      case _    =>
+        if (map.contains(u)) {
+          val old = map(u)
+          map += (u -> Add(old, e))
+        } else
+          map += (u -> e)
     }
-    
+
     def splitUp(e: Expr){
       e match {
         case Mul(a, Powf(f: Function, c)) => update(Powf(f, c), a)
@@ -133,10 +132,10 @@ sealed abstract class Expr {
         case Powf(f: Function, c)         => update(Powf(f, c), Const(1))
         case f: Function                  => {update(f, Const(1))}
         case Zero                         => ();
-        case e                            => update(noFunction, e)
+        case e: Expr                      => update(noFunction, e)
       }
     }
-    
+
     splitUp(exp)
     val order = {
       def orderApp(e: List[Function], o: Int): Int = e match {
@@ -147,7 +146,7 @@ sealed abstract class Expr {
       }
       orderApp(map.keys.toList, 0)
     }
-    
+
     val u = {
       def getFunction(kss: List[Function]): FunctionVariable = kss match {
         case Nil                       => throw new Exception
@@ -158,9 +157,9 @@ sealed abstract class Expr {
       }
       getFunction(map.keys.toList)
     }
-    
+
     val imap = map.toMap
-    
+
     order match {
       case 1 => {
         PDE.firstOrder(imap)
@@ -172,12 +171,12 @@ sealed abstract class Expr {
         val dt = if (map.contains(d(u, u.t))) map(d(u, u.t)) else Zero
         val dxt = if (map.contains( dd(u, u.x, u.t) ) && map.contains(dd(u, u.x, u.t)))
           Add(map(dd(u, u.x, u.t)), map(dd(u, u.t, u.x)))
-                  else if (map.contains(dd(u, u.x, u.t))) map(dd(u, u.x, u.t))
-                  else if (map.contains(dd(u, u.t, u.x))) map(dd(u, u.t, u.x))
-                  else Zero
+        else if (map.contains(dd(u, u.x, u.t))) map(dd(u, u.x, u.t))
+        else if (map.contains(dd(u, u.t, u.x))) map(dd(u, u.t, u.x))
+        else Zero
         val dxx = if (map.contains(dd(u, u.x, u.x) )) map(dd(u, u.x, u.x)) else Zero
         val dtt = if (map.contains(dd(u, u.t, u.t) )) map(dd(u, u.t, u.t)) else Zero
-        (dxx, dxt, dtt, dt, dx, noOrder, nofunct) match {
+          (dxx, dxt, dtt, dt, dx, noOrder, nofunct) match {
           case (a, Zero, Zero, h, b, c, Zero) => {
             h match {
               case Const(s) =>
@@ -207,7 +206,7 @@ sealed abstract class Expr {
                     new pde.model.HeatEquation(a, b, c, u)
                   }
                 }
-              
+
             }
           }
           case (a, Zero, b, Zero, Zero, Zero, Zero) => new pde.model.Laplace2(u)
@@ -219,7 +218,7 @@ sealed abstract class Expr {
       }
     }
   }
-}  
+}
 
 object noFunction extends Function
 case class Powf(f: Function, c: Expr) extends Expr with Function
@@ -229,48 +228,48 @@ case class Mul(a: Expr, b: Expr) extends Expr {
     "(" + a + " * " + b + ")"
   }
 }
-case class Div(a: Expr, b: Expr) extends Expr { 
+case class Div(a: Expr, b: Expr) extends Expr {
   override def toString() : String = {
     "(" + a + " / " + b + ")"
   }
 }
-case class Add(a: Expr, b: Expr) extends Expr { 
+case class Add(a: Expr, b: Expr) extends Expr {
   override def toString() : String = {
     a + " + " + b
   }
 }
-case class Sub(a: Expr, b: Expr) extends Expr { 
+case class Sub(a: Expr, b: Expr) extends Expr {
   override def toString() : String = {
     a + " - " + b
   }
 }
-case class Sin(a: Expr) extends Expr  { 
+case class Sin(a: Expr) extends Expr  {
   override def toString() : String = {
     "Sin(" + a + ")"
   }
 }
-case class Cos(a: Expr) extends Expr  { 
+case class Cos(a: Expr) extends Expr  {
   override def toString() : String = {
     "Cos(" + a + ")"
   }
 }
-case class Neg(a: Expr) extends Expr  { 
+case class Neg(a: Expr) extends Expr  {
   override def toString() : String = {
     "-(" + a + ")"
   }
 }
 
 class Const(val c : SmartFloat) extends Expr {
-  def *(k: SmartFloat) = Const(c*k)
-  def /(k: SmartFloat) = Const(c/k)
-  def +(k: SmartFloat) = Const(c+k)
-  def -(k: SmartFloat) = Const(c-k)
-  
+  def *(k: SmartFloat): Const = Const(c*k)
+  def /(k: SmartFloat): Const = Const(c/k)
+  def +(k: SmartFloat): Const = Const(c+k)
+  def -(k: SmartFloat): Const = Const(c-k)
+
   override def toString() = c.d.toString
 }
 
 case object Zero extends Const(0.0) {
-  override def toString = "Zero"
+  override def toString(): String = "Zero"
   override def equals(other: Any): Boolean = other match {
     case x: Double => x == 0
     case x: Short => x  == 0
@@ -305,7 +304,7 @@ case class d(u: FunctionVariable, x: Variable) extends Derivative
 case class dd(u: FunctionVariable, x: Variable, t: Variable) extends Derivative
 
 object Variable {
-  
+
   private var Uniquecounter = 1
 
 }
@@ -313,24 +312,24 @@ object Variable {
 class invalidVariableException(x: Variable) extends RuntimeException
 
 sealed case class Variable(xname: String) extends Expr {
-  override def toString() = xname
+  override def toString(): String = xname
 }
 
 
 case class FunctionVariable(uname: String, x: Variable, t: Variable)
-     extends Expr with Function {
-       val u = Symbol(uname)
-       def apply(c: Double, variable: Variable): fixedVar = {
-         assert(variable == t)
-         fixedVar(this, x, c)
-       }
-       def apply(variable: Variable, c: Double): fixedVar = {
-         assert(variable == x)
-         fixedVar(this, t, c)
-       }
-       
-       override def toString() = uname
-     }
+    extends Expr with Function {
+  val u = Symbol(uname)
+  def apply(c: Double, variable: Variable): fixedVar = {
+    assert(variable == t)
+    fixedVar(this, x, c)
+  }
+  def apply(variable: Variable, c: Double): fixedVar = {
+    assert(variable == x)
+    fixedVar(this, t, c)
+  }
+
+  override def toString(): String = uname
+}
 
 case class fixedVar(u: FunctionVariable, variable: Variable, c: Double) {
   // useage looks like u(0, t) :=6+5*t
@@ -349,7 +348,7 @@ final class from(interval: scala.collection.immutable.Range.Inclusive) extends I
 }
 
 object from{
-  def apply(interval: scala.collection.immutable.Range.Inclusive) = new from(interval)
+  def apply(interval: scala.collection.immutable.Range.Inclusive): from = new from(interval)
 }
 
 final case class to(val lo: Double, val hi: Double) extends Interval {(assert(lo<hi))}
@@ -361,39 +360,37 @@ case class Point2(var1: Tuple2[Variable, Double], var2: Tuple2[Variable, Double]
   val t = var2._1
   val tVal = var2._2
   val coordx = (x, xVal)
-    val coordt = (t, tVal)
-      def apply(x: Variable): Double = {
-        if (x == var1._1) var1._2
-        else if (x == var2._1) var2._2
-        else throw new CannotEvaluateException
-      }
+  val coordt = (t, tVal)
+  def apply(x: Variable): Double = {
+    if (x == var1._1) var1._2
+    else if (x == var2._1) var2._2
+    else throw new CannotEvaluateException
+  }
 }
 
 
 case class BFunction(u: Condition, interval: from) {
-  
-  def lowerPoint = if (u.fixed == u.function.x)
+
+  def lowerPoint: Point2 = if (u.fixed == u.function.x)
     Point2((u.function.x,  u.c),(u.function.t, interval.lo))
-                   else Point2((u.function.x, interval.lo),(u.function.t, u.c))
-  def upperPoint = if (u.fixed == u.function.x)
+  else Point2((u.function.x, interval.lo),(u.function.t, u.c))
+  def upperPoint: Point2 = if (u.fixed == u.function.x)
     Point2((u.function.x, u.c), (u.function.t, interval.hi))
-                     else Point2((u.function.x, interval.hi),(u.function.t, u.c))
-    
-    def lowerValue = if (u.fixed == u.function.x)
-      u.exp.eval((u.function.x, u.c), (u.function.t, interval.lo))
-                     else u.exp.eval((u.function.x, interval.lo), (u.function.t, u.c))
-    def upperValue = if (u.fixed == u.function.x)
-      u.exp.eval((u.function.x,  u.c),(u.function.t, interval.hi))
-                     else u.exp.eval((u.function.x, interval.hi),(u.function.t, u.c))
+  else Point2((u.function.x, interval.hi),(u.function.t, u.c))
 
-    
-  }
+  def lowerValue: SmartFloat = if (u.fixed == u.function.x)
+    u.exp.eval((u.function.x, u.c), (u.function.t, interval.lo))
+  else u.exp.eval((u.function.x, interval.lo), (u.function.t, u.c))
+  def upperValue: SmartFloat = if (u.fixed == u.function.x)
+    u.exp.eval((u.function.x,  u.c),(u.function.t, interval.hi))
+  else u.exp.eval((u.function.x, interval.hi),(u.function.t, u.c))
+}
 
-  object Expr{
-    
-    implicit def double2Const(c: Double) = Const(SmartFloat(c))
+object Expr{
+
+  implicit def double2Const(c: Double) = Const(SmartFloat(c))
     implicit def ciT2BFunction(bf: Tuple2[Condition, from]): BFunction =
     BFunction(bf._1, bf._2)
-  
-  
+
+
 }

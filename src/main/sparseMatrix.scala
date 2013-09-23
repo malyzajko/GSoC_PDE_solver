@@ -13,8 +13,8 @@ class noSolutionException extends Exception
 
 object SparseMatrix {
 
-  def apply[T](data: Vector[Vector[T]]) = new SparseMatrix[T](data)
-  def zeroes = new SparseMatrix[SmartFloat](Vector(Vector()))
+  def apply[T](data: Vector[Vector[T]]): SparseMatrix = new SparseMatrix[T](data)
+  def zeroes: SparseMatrix = new SparseMatrix[SmartFloat](Vector(Vector()))
 
 }
 
@@ -48,8 +48,8 @@ class SparseMatrix[T](data: Vector[Vector[T]]) {
   def +=(i: Int, vec: SparseVector[T]){
     rows += ((i, vec))
   }
-  
-  def apply(i: Int, j: Int) = {
+
+  def apply(i: Int, j: Int): T = {
     rows(i)(j)
 
   }
@@ -57,15 +57,16 @@ class SparseMatrix[T](data: Vector[Vector[T]]) {
 
 object TriDiagonalMatrix{
 
-  def apply(main: Vector[SmartFloat], upper: Vector[SmartFloat], lower: Vector[SmartFloat]) =
+  def apply(main: Vector[SmartFloat],
+    upper: Vector[SmartFloat], lower: Vector[SmartFloat]): TriDiagonalMatrix =
     new TriDiagonalMatrix(main, upper, lower)
 }
 
 class TriDiagonalMatrix(val main: Vector[SmartFloat],
-                        val upper: Vector[SmartFloat],
-                        val lower: Vector[SmartFloat]){
+  val upper: Vector[SmartFloat],
+  val lower: Vector[SmartFloat]){
   assert(main.length -1 == upper.length && main.length-1 == lower.length)
-  
+
   def determinant: SmartFloat = {
     val fneg1 = 0
     val f0 =1
@@ -86,66 +87,52 @@ class TriDiagonalMatrix(val main: Vector[SmartFloat],
       if (main(0)*main(1) - lower(0)*upper(0) == 0) throw new noSolutionException
       else {
         /**
-         * ( a  b ) (x) = (e)
-         * ( c  d ) (y)   (f)
-         */
+          * ( a  b ) (x) = (e)
+          * ( c  d ) (y)   (f)
+          */
         val y = (lower.head * ds.head
-                 - main.head * ds.last) / (upper.head*lower.head
-                                           - main.head*main.last)
+          - main.head * ds.last) / (upper.head*lower.head
+            - main.head*main.last)
         val x = (main.last * ds.head
-                 - upper.head * ds.last) / (main.head * main.last
-                                            - upper.head * lower.head)
+          - upper.head * ds.last) / (main.head * main.last
+            - upper.head * lower.head)
         Array(x, y)
       }
     }
-      else {
-        val c = upper.map(elem => elem.d).toArray
-        val a = lower.map(elem => elem.d)
-        val b = main.map(elem => elem.d).toArray
-        val d = ds.map(elem => elem.d).toArray
-        // c(0) = c(0)/b(0)
-        // d(0) = d(0)/b(0)
-        // for(i <- 1 to n-2; temp = b(i)- c(i-1)*a(i-1)){
-        //   c(i) = c(i)/temp
-        //   d(i) = (d(i) - a(i-1)*d(i-1))/temp
-        // }
-        // d(n-1) = (d(n-1) - a(n-2)*d(n-2))/(b(n-1)-a(n-2)*c(n-2))
-        // val solution = new Array[SmartFloat](n)
-        // try {
-        //   solution(n-1) = SmartFloat(d(n-1))
-        // } catch {
-        //   case ex: java.lang.AssertionError => println(d(n-1))
-        // }
-        // for(i <- n-2 to 0 by -1)
-        //   solution(i) = d(i) - c(i)*solution(i+1)
-        for(i <- 0 until n-1){
-          d(i+1) -= d(i) * a(i)/b(i)
-          b(i+1) -= c(i) * a(i)/b(i)
-        }
-        for(i <- n-2 to 0 by -1)
-          d(i) -= d(i+1) * c(i)/b(i+1)
-        
-        for(i <- 0 until n)
-        yield SmartFloat(d(i)/b(i))
+    else {
+      val c = upper.map(elem => elem.d).toArray
+      val a = lower.map(elem => elem.d)
+      val b = main.map(elem => elem.d).toArray
+      val d = ds.map(elem => elem.d).toArray
+
+      for(i <- 0 until n-1){
+        d(i+1) -= d(i) * a(i)/b(i)
+        b(i+1) -= c(i) * a(i)/b(i)
       }
+      for(i <- n-2 to 0 by -1)
+        d(i) -= d(i+1) * c(i)/b(i+1)
+
+      for(i <- 0 until n)
+      yield SmartFloat(d(i)/b(i))
+    }
   }
 }
 
 object SparseVector{
-  
+
   def apply[T](length: Int): SparseVector[T] = new SparseVector[T](length)
-  
+
 }
 
 class SparseVector[T](vallength: Int){
 
   private val sparseRow = scala.collection.mutable.Map[Int, T]()
-  
+
   def +=(j: Int, value: T){
     if (value != 0) sparseRow += ((j, value))
   }
 
   def isEmpty: Boolean = sparseRow.isEmpty
 
-  def apply(j: Int) = sparseRow(j)
+  def apply(j: Int): T = sparseRow(j)
 }

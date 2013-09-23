@@ -30,8 +30,6 @@ object Solver {
 
     // Boundary Values
     var solution = generateRectBorderD(boundary,xstep, tstep, xsize, tsize)
-    // println("xsize: " + xsize + ", tsize: " + tsize + ", xstep: "+ xstep + ", tstep: " + tstep +
-    //         ", xmin: " + xmin + ", tmin: " + tmin)
     // The functions preceding dx, dt, u and f, so a, b, c and d
     // evaluated at points in the area
     val dtVals = generateFunctionValsD(eqn.dt, f, xstep, tstep, xsize, tsize, xmin, tmin)
@@ -80,8 +78,6 @@ object Solver {
 
     // Boundary Values
     var solution = generateThreeSidedBorderD(boundary,xstep, tstep, xsize, tsize)
-    // println("xsize: " + xsize + ", tsize: " + tsize + ", xstep: "+ xstep + ", tstep: " + tstep +
-    //         ", xmin: " + xmin + ", tmin: " + tmin)
     // The functions preceding dx, dt, u and f, so a, b, c and d
     // evaluated at points in the area
     val dtVals = generateFunctionValsD(eqn.dt, f, xstep, tstep, xsize, tsize, xmin, tmin)
@@ -139,8 +135,6 @@ object Solver {
 
     // Boundary Values
     var solution = generateThreeSidedBorder(boundary,xstep, tstep, xsize, tsize)
-    // println("xsize: " + xsize + ", tsize: " + tsize + ", xstep: "+ xstep + ", tstep: " + tstep +
-    //         ", xmin: " + xmin + ", tmin: " + tmin)
     // The functions preceding dx, dt, u and f, so a, b, c and d
     // evaluated at points in the area
     val dtVals = generateFunctionVals(eqn.dt, f, xstep, tstep, xsize, tsize, xmin, tmin)
@@ -153,8 +147,6 @@ object Solver {
         for(j <- 0 until tsize)
         yield 1/(dtVals(i)(j)/tstep + dxVals(i)(j)/xstep + noOrderVals(i)(j))
     }
-    // println(solution(0)(1) + " " +solution(0)(1).d)
-    // println(solution(1)(0) + " " +solution(1)(0).d)
 
     def uij(i: Int)(j: Int): SmartFloat = {
       if (quotient(i)(j) != 0.0) {
@@ -219,18 +211,18 @@ object Solver {
     def uij(i: Int)(j: Int): SmartFloat = {
       if (quotient(i)(j) != 0.0) {
         (dtVals(i)(j)/tstep * solution(i)(j-1) + dxVals(i)(j)/xstep * solution(i-1)(j) -
-         noFunctVals(i)(j)) * quotient(i)(j)
+          noFunctVals(i)(j)) * quotient(i)(j)
       }
       else SmartFloat(0.0)
     }
 
     for{i <- 1 until xsize-1;
-        j <- 1 until tsize-1}{
-          solution(i)(j) = uij(i)(j)
-        }
+      j <- 1 until tsize-1}{
+      solution(i)(j) = uij(i)(j)
+    }
 
     for(i <- 1 until xsize-1;
-        j <- 1 until tsize -1){
+      j <- 1 until tsize -1){
       val xError = xstep*(solution(i+1)(j) - solution(i-1)(j))/2
       val tError = tstep*(solution(i)(j+1) - solution(i)(j-1))/2
       solution(i)(j) = solution(i)(j) addError xError addError tError
@@ -243,7 +235,7 @@ object Solver {
   //order 2
 
   private def solveOrder2(eqn: PDE2, boundary: Boundary)
-  (xstep: Double = 0.01, tstep: Double = 0.01) = eqn match {
+    (xstep: Double = 0.01, tstep: Double = 0.01) = eqn match {
     case linear2: LinearPDE2 => (linear2, boundary) match {
       case (laplace2: Laplace2, rb: RectBoundary) => solveLaplace2(laplace2, rb)(xstep,tstep)
       case (poisson2: Poisson2, rb: RectBoundary) => solvePoisson2(poisson2, rb)(xstep,tstep)
@@ -255,7 +247,7 @@ object Solver {
   }
 
   private def solveLaplace2(eqn: Laplace2, boundary: RectBoundary)
-  (xstep: Double = 0.01, tstep: Double = 0.01) = {
+    (xstep: Double = 0.01, tstep: Double = 0.01) = {
     import scala.collection.immutable.Map
     import eqn.{function => f}
     import boundary.{bottom, top, left, right}
@@ -271,14 +263,14 @@ object Solver {
       var diff = 0.0
       def uij(i: Int)(j: Int) = {
         0.25 * (solution(i+1)(j) + solution(i-1)(j) +
-                solution(i)(j+1) + solution(i)(j-1))
+          solution(i)(j+1) + solution(i)(j-1))
       }
       for{i <- 1 until xsize-1;
-          j <- 1 until tsize-1}{
-            temp(i)(j) = uij(i)(j)
-            val rDiff = ((temp(i)(j).d - solution(i)(j).d)/temp(i)(j).d).abs
-            if (rDiff > diff) diff = rDiff
-          }
+        j <- 1 until tsize-1}{
+        temp(i)(j) = uij(i)(j)
+        val rDiff = ((temp(i)(j).d - solution(i)(j).d)/temp(i)(j).d).abs
+        if (rDiff > diff) diff = rDiff
+      }
 
       for (i <- 1 until xsize-1; j <- 1 until tsize-1)
         solution(i)(j) = temp(i)(j)
@@ -301,7 +293,7 @@ object Solver {
   }
 
   private def solvePoisson2(eqn: Poisson2, boundary: RectBoundary)
-  (xstep: Double = 0.01, tstep: Double = 0.01) = {
+    (xstep: Double = 0.01, tstep: Double = 0.01) = {
     import scala.collection.immutable.Map
     import eqn.{function => f}
     import boundary.{bottom, top, left, right}
@@ -319,12 +311,12 @@ object Solver {
       def uij(i: Int)(j: Int) = {
         0.25 * (solution(i+1)(j) + solution(i-1)(j) + solution(i)(j+1) + solution(i)(j-1)) - 0.25 * c(i)(j)
       }
-      for{i <- 1 until xsize-1;
-          j <- 1 until tsize-1}{
-            temp(i)(j) = uij(i)(j)
-            val rDiff = ((temp(i)(j).d - solution(i)(j).d)/temp(i)(j).d).abs
-            if (rDiff > diff) diff = rDiff
-          }
+      for{i <- 1 until xsize - 1;
+        j <- 1 until tsize - 1}{
+        temp(i)(j) = uij(i)(j)
+        val rDiff = ((temp(i)(j).d - solution(i)(j).d)/temp(i)(j).d).abs
+        if (rDiff > diff) diff = rDiff
+      }
 
       for (i <- 1 until xsize-1; j <- 1 until tsize-1)
         solution(i)(j) = temp(i)(j)
@@ -342,7 +334,7 @@ object Solver {
   }
 
   private def solveScalarHeatEquation(eqn: ScalarHeatEquation,
-                                      boundary: ThreeSidedBoundary) : ErrorData = {
+    boundary: ThreeSidedBoundary) : ErrorData = {
     // Application of Crank-Nicolson's algorithm
     import scala.collection.immutable.Map
     import eqn.{function => f}
@@ -361,8 +353,8 @@ object Solver {
     val solution: Array[Array[SmartFloat]] = generateThreeSidedBorder(boundary,xstep, tstep, xsize, tsize)
     val Ai = - tstep * (2 * eqn.a + xstep * eqn.b)
     val Bi = 2* (2 * xstep * xstep + 2 * tstep * eqn.a - xstep * xstep * tstep * eqn.c)
+    val Bi2 = 2* (2 * xstep * xstep - 2 * tstep * eqn.a + xstep * xstep * tstep * eqn.c)
     val Ci = - tstep * (2 * eqn.a - xstep * eqn.b)
-    Vector(Ai, Bi, Ci).foreach(x => println(x.d + " "))
     val upper = Vector.fill(xsize-2)(Ci)
     val main = Vector.fill(xsize-1)(Bi)
     val lower = Vector.fill(xsize - 2)(Ai)
@@ -375,7 +367,7 @@ object Solver {
         def Di(i: Int): SmartFloat = {
           val centralValue = -Ai * solution(i+1)(n) - Bi * solution(i)(n) - Ci * solution(i-1)(n)
           val dxxError = (0.5 * tstep + (1/12) * xstep * xstep)
-            centralValue
+          centralValue
         }
         val Dis = {
           for(i<- 2 until xsize-2)
@@ -386,16 +378,79 @@ object Solver {
         val Dn = - Ai * (solution(xsize-1)(n) + solution(xsize-1)(n+1) ) - (
           Bi * solution(xsize-2)(n) + Ci * solution(xsize-3)(n))
 
-        println("n " + n)
-        println(solution(0)(n).d + ", " + solution(1)(n).d + ", "
-                + solution(xsize-2)(n).d+ ", " + solution(xsize-1)(n).d)
-        println("Di")
-        (D1 +: Dis :+ Dn).foreach( x => print(x.d + ", "))
-        println("")
-        println("n+1")
-        aMatrix.solveSystem(D1 +: Dis :+ Dn).foreach(x => print(x.d + ", "))
-        println("")
         aMatrix.solveSystem(D1 +: Dis :+ Dn)
+      }
+    }
+    def copyRow(n: Int, row: IndexedSeq[SmartFloat]) {
+      for(i <- 1 until xsize)
+        solution(i)(n) = row(i)
+    }
+
+    for(i <- 0 until tsize-1){
+      val nRow = nextRow(i)
+      for(j <- 1 until xsize-1){
+        solution(j)(i+1) = nRow(j-1)
+      }
+    }
+    new ErrorData(solution, eqn, boundary, xstep, tstep)
+  }
+
+  private def solveHeatEquation(eqn: HeatEquation,
+    boundary: ThreeSidedBoundary) : ErrorData = {
+    // Application of Crank-Nicolson's algorithm
+    import scala.collection.immutable.Map
+    import eqn.{function => f}
+    import boundary.{bottom, left, right}
+    import pde.util.TriDiagonalMatrix
+    val xstep = (boundary.xmax - boundary.xmin)/ 1000
+    val tstep = (boundary.tmax - boundary.tmin) / 1000
+    val xsize = 1000
+    val tsize = 1000
+    val xmin: Double  = bottom.interval.lo
+    val tmin: Double  = left.interval.lo
+
+    var temp = Array.ofDim[SmartFloat](xsize, tsize)
+
+    // Inputting the Boundary Values
+    val solution: Array[Array[SmartFloat]] = generateThreeSidedBorder(boundary,xstep, tstep, xsize, tsize)
+    val Ai = (- tstep * (2 * eqn.dxx + xstep * eqn.dx)).expr2Function2
+    val Bi = (2* (2 * xstep * xstep + 2 * tstep * eqn.dxx -
+      xstep * xstep * tstep * eqn.noOrder)).expr2Function2
+    val Bi2 = (2* (2 * xstep * xstep - 2 * tstep * eqn.dxx
+      + xstep * xstep * tstep * eqn.noOrder)).expr2Function2
+    val Ci = (- tstep * (2 * eqn.dxx - xstep * eqn.dx)).expr2Function2
+    val fnl = left.u.exp.expr2Function2
+    val fnr = right.u.exp.expr2Function2
+    def nextRow(n: Int) : IndexedSeq[SmartFloat] = {
+      if (n < 0) throw new InvalidRowException
+      else {
+        val (upper, lower, main, dis) = {
+          val res = Array.ofDim[SmartFloat](xsize-2)
+          val res2 = Array.ofDim[SmartFloat](xsize-2)
+          val res3 = Array.ofDim[SmartFloat](xsize-1)
+          val res4 = Array.ofDim[SmartFloat](xsize-1)
+          val tpoint = tmin + n*tstep
+          for(i <- 0 until xsize-2){
+            val deltaX = i * xstep
+            val xpoint = xmin + deltaX
+            res(i) = Ai((f.x, xpoint), (f.t, tpoint))
+            res2(i) = Ci((f.x, xpoint), (f.t, tpoint))
+            res3(i) = Bi((f.x, xpoint), (f.t, tpoint))
+          }
+          res3(xsize-2) = Bi((f.x, xmin + (xsize - 2) * xstep), (f.t, tpoint))
+          val Bi2 = (2* (2 * xstep * xstep - 2 * tstep * eqn.dxx +
+            xstep * xstep * tstep * eqn.noOrder)).expr2Function2
+
+          for(i <- 1 until xsize-1){
+            val deltaX = i * xstep
+            val xpoint = xmin + deltaX
+            res4(i-1) = -res(i) * solution(i+1)(n) - res2(i) * solution(i-1)(n) +
+            Bi2((f.x, xpoint), (f.t, tpoint)) * solution(i)(n)
+          }
+          (res.toVector, res2.toVector, res3.toVector, res4.toVector)
+        }
+        val aMatrix = new TriDiagonalMatrix(main, upper, lower)
+        aMatrix.solveSystem(dis)
       }
     }
     def copyRow(n: Int, row: IndexedSeq[SmartFloat]) {
@@ -440,10 +495,10 @@ object Solver {
     }
 
     /**
-     * Remapping all points from (j, l) to i = j(L+1)+l
-     * where L is the max index we iterate to, so size-1,
-     * into a sparse matrix
-     */
+      * Remapping all points from (j, l) to i = j(L+1)+l
+      * where L is the max index we iterate to, so size-1,
+      * into a sparse matrix
+      */
     val sparseMat = pde.util.SparseMatrix.zeroes
     def addVals : Unit = {
       def genRow(i: Int): SparseVector[SmartFloat] = {
@@ -453,8 +508,8 @@ object Solver {
           import eqn.{dttVal, dxtVal, dxxVal, dtVal, dxVal, noOrderVal, noFunctVal}
           val u0 = - ((2*dxxVal/xstep+dxVal)/xstep+(2*dttVal/tstep+dtVal)/tstep -noOrderVal)
           val u1 = (dttVal/(tstep*tstep) + dtVal/tstep)
-            val uLplus1 = (dxxVal/(xstep*xstep) + dxVal/xstep)
-              val others = dxtVal/(xstep*tstep)
+          val uLplus1 = (dxxVal/(xstep*xstep) + dxVal/xstep)
+          val others = dxtVal/(xstep*tstep)
           row += (0, u0)
           row += (1, u1)
           row += (L+1, uLplus1)
@@ -474,7 +529,7 @@ object Solver {
 
 
   private def solveGeneralLinear2(eqn: LinearPDE2, boundary: RectBoundary)
-  (xstep: Double = 0.01, tstep: Double = 0.01)= {
+    (xstep: Double = 0.01, tstep: Double = 0.01)= {
     import scala.collection.immutable.Map
     import eqn.{function => f}
     import boundary.{bottom, top, left, right}
@@ -516,24 +571,24 @@ object Solver {
         val tpoint = tmin+j*tstep
         val evalPoint = Map(f.x -> xpoint, f.t -> tpoint)
         (xstepSquared*tstepSquared)*(dxxVals(i)(j)*(solution(i-1)(j)+solution(i+1)(j))/(xstepSquared)
-                                     + dttVals(i)(j)*(solution(i)(j-1)+solution(i)(j+1))/(tstepSquared)
-                                     +dxtVals(i)(j)*(solution(i+1)(j+1)
-                                                     - solution(i+1)(j-1) - solution(i-1)(j+1)+solution(i+1)(j-1))/(4*xstep*tstep)
-                                     +dxVals(i)(j)*(solution(i+1)(j))/xstep
-                                     +dtVals(i)(j)*(solution(i)(j+1))/tstep
-                                     +noFunctVals(i)(j))/
+          + dttVals(i)(j)*(solution(i)(j-1)+solution(i)(j+1))/(tstepSquared)
+          +dxtVals(i)(j)*(solution(i+1)(j+1)
+            - solution(i+1)(j-1) - solution(i-1)(j+1)+solution(i+1)(j-1))/(4*xstep*tstep)
+          +dxVals(i)(j)*(solution(i+1)(j))/xstep
+          +dtVals(i)(j)*(solution(i)(j+1))/tstep
+          +noFunctVals(i)(j))/
         (2*tstepSquared*dxxVals(i)(j)
-         +2*xstepSquared*dttVals(i)(j)
-         +xstep*tstepSquared*dxVals(i)(j)
-         +xstepSquared*tstep*dtVals(i)(j)
-         +xstepSquared*tstepSquared*noOrderVals(i)(j))
+          +2*xstepSquared*dttVals(i)(j)
+          +xstep*tstepSquared*dxVals(i)(j)
+          +xstepSquared*tstep*dtVals(i)(j)
+          +xstepSquared*tstepSquared*noOrderVals(i)(j))
       }
       for{i <- 1 until xsize-1;
-          j <- 1 until tsize-1}{
-            temp(i)(j) = uij(i)(j)
-            val temp2 = SmartFloat.abs((temp(i)(j) - solution(i)(j)) / temp(i)(j))
-            if (temp2 > diff) {diff = temp2.d}
-          }
+        j <- 1 until tsize-1}{
+        temp(i)(j) = uij(i)(j)
+        val temp2 = SmartFloat.abs((temp(i)(j) - solution(i)(j)) / temp(i)(j))
+        if (temp2 > diff) {diff = temp2.d}
+      }
       for (i <- 1 until xsize-1; j <- 1 until tsize-1)
         solution(i)(j) = temp(i)(j)
 
@@ -551,7 +606,7 @@ object Solver {
 
 
   def generateRectBorder(boundary: RectBoundary, xstep: Double, tstep: Double,
-                         xsize: Int, tsize: Int): Array[Array[SmartFloat]] = {
+    xsize: Int, tsize: Int): Array[Array[SmartFloat]] = {
     import boundary.{bottom, top, left, right, f}
     var solution = Array.fill(xsize, tsize)(SmartFloat(0.0))
     val fnb = bottom.u.exp.expr2Function2
@@ -575,7 +630,7 @@ object Solver {
   }
 
   private def generateThreeSidedBorder(boundary: ThreeSidedBoundary, xstep: Double, tstep: Double,
-                                       xsize: Int, tsize: Int): Array[Array[SmartFloat]] = {
+    xsize: Int, tsize: Int): Array[Array[SmartFloat]] = {
     import boundary.{bottom, left, right, f}
     var solution = Array.fill(xsize, tsize)(SmartFloat(0.0))
     val fnb = bottom.u.exp.expr2Function2
@@ -594,7 +649,7 @@ object Solver {
   }
 
   private def generateThreeSidedBorderD(boundary: ThreeSidedBoundary, xstep: Double, tstep: Double,
-                                        xsize: Int, tsize: Int): Array[Array[Double]] = {
+    xsize: Int, tsize: Int): Array[Array[Double]] = {
     import boundary.{bottom, left, right, f}
     var solution = Array.fill(xsize, tsize)(0.0)
     val fnb = bottom.u.exp.expr2Function2
@@ -612,9 +667,9 @@ object Solver {
     solution
   }
 
-  def generateFunctionVals(e: Expr, f: FunctionVariable,
-                           xstep: Double, tstep: Double, xsize: Int, tsize: Int,
-                           xmin: Double, tmin: Double): Array[Array[SmartFloat]] = e match {
+  private def generateFunctionVals(e: Expr, f: FunctionVariable,
+    xstep: Double, tstep: Double, xsize: Int, tsize: Int,
+    xmin: Double, tmin: Double): Array[Array[SmartFloat]] = e match {
     case Zero     => Array.fill(xsize,tsize)(SmartFloat(0.0))
     case Const(c) => Array.fill(xsize,tsize)(c)
     case _        => {
@@ -625,7 +680,7 @@ object Solver {
           val xpoint = xmin + i * xstep
           val tpoint = tmin + j * tstep
           val (evalx, evalt) = ((f.x, xpoint), (f.t, tpoint))
-            result(i)(j) = fn(evalx, evalt)
+          result(i)(j) = fn(evalx, evalt)
         }
       }
 
@@ -633,8 +688,8 @@ object Solver {
     }
   }
 
-  def generateRectBorderD(boundary: RectBoundary, xstep: Double, tstep: Double,
-                          xsize: Int, tsize: Int): Array[Array[Double]] = {
+  private def generateRectBorderD(boundary: RectBoundary, xstep: Double, tstep: Double,
+    xsize: Int, tsize: Int): Array[Array[Double]] = {
     import boundary.{bottom, top, left, right, f}
     var solution = Array.fill(xsize, tsize)((0.0))
     for (i <- 0 until xsize){
@@ -648,18 +703,18 @@ object Solver {
       val tpoint = left.interval.lo + i*tstep
       solution(0)(i) = left.u.exp.eval((f.x, left.u.c), (f.t, tpoint)).d
       solution(xsize-1)(i) = right.u.exp.eval((f.x, right.u.c), (f.t, tpoint)).d
-      }
-      solution
     }
+    solution
+  }
 
-    def generateFunctionValsD(e: Expr, f: FunctionVariable,
-                              xstep: Double, tstep: Double, xsize: Int, tsize: Int,
-                              xmin: Double, tmin: Double): Array[Array[Double]] = e match {
-      case Zero     => Array.fill(xsize,tsize)(0.0)
-      case Const(c) => Array.fill(xsize,tsize)(c.d)
-      case _        => {
-        val fn = e.expr2Function2
-        val result = Array.ofDim[Double](xsize,tsize)
+  private def generateFunctionValsD(e: Expr, f: FunctionVariable,
+    xstep: Double, tstep: Double, xsize: Int, tsize: Int,
+    xmin: Double, tmin: Double): Array[Array[Double]] = e match {
+    case Zero     => Array.fill(xsize,tsize)(0.0)
+    case Const(c) => Array.fill(xsize,tsize)(c.d)
+    case _        => {
+      val fn = e.expr2Function2
+      val result = Array.ofDim[Double](xsize,tsize)
         for (i <- 0 until xsize) {
           for (j <- 0 until tsize) {
             val xpoint = xmin + i * xstep

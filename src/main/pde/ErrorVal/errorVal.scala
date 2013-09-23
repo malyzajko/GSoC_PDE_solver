@@ -24,21 +24,21 @@ import pde.model.{DirichiletBoundary}
       else getData(x, t)
     }
     private def getData(x: Double, t: Double) : SmartFloat = {
-      val xindex = (xmin+x)/xstep
-      val tindex = (tmin+t)/tstep
+      val xindex = (xmin + x)/xstep
+      val tindex = (tmin + t)/tstep
       val xInt = xindex.toInt
       val tInt = tindex.toInt
       if (xindex % 1.0 == 0.0) {
         val points = Array[SmartFloat](data(xInt)(tInt),
           data(xInt+1)(tInt))
-        val weights = Array[Double](xInt+1-xindex, xindex-xInt)
+        val weights = Array[Double](xInt + 1 - xindex, xindex - xInt)
         val sumWeights = weights(0) + weights(1)
         (points(0) * weights(0) + points(1) * weights(1))/sumWeights
       }
       else if (tindex % 1.0 == 0.0){
         val points = Array[SmartFloat](data(xInt)(tInt),
           data(xInt)(tInt))
-        val weights = Array[Double](tInt+1-tindex, tindex - tInt)
+        val weights = Array[Double](tInt + 1 - tindex, tindex - tInt)
         val sumWeights = weights(0) + weights(1)
         (points(0) * weights(0) + points(1) * weights(1))/sumWeights
       }
@@ -58,8 +58,8 @@ import pde.model.{DirichiletBoundary}
             (xInt + 1 - xindex, tInt + 1 - tindex))
 
           val corners = Array((0, 0), (1, 0), (0, 1), (1, 1))
-          (for(i <- 0 until 4)
-          yield dist(temp(i)._1, temp(i)._2)(corners(i)._1, corners(i)._2)).toArray
+            (for(i <- 0 until 4)
+            yield dist(temp(i)._1, temp(i)._2)(corners(i)._1, corners(i)._2)).toArray
         }
         def inverseDistances() = {
           val sum = weights.foldLeft(0.0)((x, y) => x + y)
@@ -68,11 +68,11 @@ import pde.model.{DirichiletBoundary}
           for(i <- 0 until 4)
             weights(i) = 1/weights(i)
         }
-        inverseDistances()
+          inverseDistances()
         val numerator = {
           val temp = for((x, w) <- points zip weights)
           yield x * w
-          temp.foldLeft(SmartFloat(0.0))((x, y) => x + y )
+            temp.foldLeft(SmartFloat(0.0))((x, y) => x + y )
         }
         val denominator = weights.foldLeft(0.0)((x, y) => x + y)
         numerator/denominator
@@ -81,5 +81,5 @@ import pde.model.{DirichiletBoundary}
 
     override def toString(): String = {
       "Solution to: " + pde
-  }
+    }
   }

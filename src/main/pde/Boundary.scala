@@ -1,30 +1,30 @@
 //TBD
 /**
- * File: Boundary.scala
- * Here is a basic data class to define boundary conditions.
- * For the while it's only for 4 sided boundaries.
- * The boundaries are defined as (g(x), (min, max), (x, double))
- * The last tuple is to determine which variable is held fixed and at what point.
- * It's zero based, so x is 0 and t is 1.
- *
- * Example
- * (g(x), (0, 1), (1, 3)) means:
- * u(x, 3) = g(x) for 0 <= x <= 1
- *
- * boundaries are assumed to be in order of xbot, xtop, tbot, ttop
- * For the while the boundaries are also rectangular, but I've set it for
- * intervals for expanding on it later
- *
- *      _________________________________ xtop
- *      |                                |
+  * File: Boundary.scala
+  * Here is a basic data class to define boundary conditions.
+  * For the while it's only for 4 sided boundaries.
+  * The boundaries are defined as (g(x), (min, max), (x, double))
+  * The last tuple is to determine which variable is held fixed and at what point.
+  * It's zero based, so x is 0 and t is 1.
+  *
+  * Example
+  * (g(x), (0, 1), (1, 3)) means:
+  * u(x, 3) = g(x) for 0 <= x <= 1
+  *
+  * boundaries are assumed to be in order of xbot, xtop, tbot, ttop
+  * For the while the boundaries are also rectangular, but I've set it for
+  * intervals for expanding on it later
+  *
+  *      _________________________________ xtop
   *      |                                |
- *      |tleft                           | tright
- *      |                                |
- *      ----------------------------------
- *      xbot
- *
- *      curerntly only has rectangular coords
- */
+  *      |                                |
+  *      |tleft                           | tright
+  *      |                                |
+  *      ----------------------------------
+  *      xbot
+  *
+  *      curerntly only has rectangular coords
+  */
 
 
 package pde.model
@@ -58,11 +58,11 @@ object Boundary{
 }
 
 class RectBoundary(
-    b1: BFunction,
+  b1: BFunction,
   b2: BFunction,
   b3: BFunction,
   b4: BFunction
-  ) extends DirichiletBoundary {
+) extends DirichiletBoundary {
   assert(assertBoundary)
 
   private def assertBoundary = {
@@ -84,14 +84,14 @@ class RectBoundary(
 
     }
     val points = Set(b1.lowerPoint, b1.upperPoint,
-                     b2.lowerPoint, b2.upperPoint,
-                     b3.lowerPoint, b3.upperPoint,
-                     b4.lowerPoint, b4.upperPoint)
+      b2.lowerPoint, b2.upperPoint,
+      b3.lowerPoint, b3.upperPoint,
+      b4.lowerPoint, b4.upperPoint)
 
     val pointComparisons = for {boundary1 <- List(b1, b2, b3, b4)
-                                boundary2 <- List(b2, b3, b4)}
+      boundary2 <- List(b2, b3, b4)}
     if (!compareBFs(boundary1, boundary2))
-      { false }
+    { false }
 
     (points.size==4)
 
@@ -122,9 +122,9 @@ class RectBoundary(
 }
 
 /**
- * Although for 3 sided boundaries the upper limits to not need to be defined,
- * I enforce them for the purposes of having a stopping point.
- */
+  * Although for 3 sided boundaries the upper limits to not need to be defined,
+  * I enforce them for the purposes of having a stopping point.
+  */
 class ThreeSidedBoundary(
   val bottom: BFunction,
   val b2: BFunction,

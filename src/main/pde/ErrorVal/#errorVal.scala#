@@ -81,5 +81,5 @@ import pde.model.{DirichiletBoundary}
 
     override def toString(): String = {
       "Solution to: " + pde
-  }
+    }
   }

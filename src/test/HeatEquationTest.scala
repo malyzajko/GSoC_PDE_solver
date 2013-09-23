@@ -30,18 +30,16 @@ object HeatEquationTest extends App {
   println("End")
   for(i <- 0 until 1000; if i%100==0){
     val xvalue = i.toDouble/1000
-    println("Generated Point ("+ xvalue + ", 0.002): " + solution(i)(1).d + "\n"
-            + solution(i)(1))
+    println("Generated Point ("+ xvalue + ", 0.002): " + solution(xvalue, 0.002) + "\n"
+            + solution(xvalue, 0.002).d)
     println("Real: " + realSolution(xvalue, 0.002))
   }
   for(i <- 0 to 30) {
-    val xval = (scala.math.floor (random.nextDouble * 1250))/1000
-    val tval = (scala.math.floor (random.nextDouble * 2500))/1000
-    val xindex = (xval*1250).toInt
-    val tindex = (tval*625).toInt
+    val xval = (scala.math.floor (random.nextDouble * 1000))/1000
+    val tval = (scala.math.floor (random.nextDouble * 2000))/1000
     
     println("Generated Point (" + xval + ", " + tval + "): "
-            + solution(xindex)(tindex).d + "\n" + solution(xindex)(tindex))
+            + solution(xval, tval).d + "\n" + solution(xval, tval))
     println("Real: " + realSolution(xval, tval))
   }
 

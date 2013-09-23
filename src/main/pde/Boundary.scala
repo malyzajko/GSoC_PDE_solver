@@ -17,7 +17,7 @@
  *
  *      _________________________________ xtop
  *      |                                |
- *      |                                |
+  *      |                                |
  *      |tleft                           | tright
  *      |                                |
  *      ----------------------------------
@@ -26,34 +26,42 @@
  *      curerntly only has rectangular coords
  */
 
+
 package pde.model
 import pde.model.expression.{BFunction, Condition, Derivative, Expr, Point2, FunctionVariable}
 import ceres.smartfloat.SmartFloat
 sealed abstract class Boundary
 
-  abstract class DirichiletBoundary extends Boundary {
-    val f: FunctionVariable
-    val xmin: Double
-    val tmin: Double
-    val xmax: Double
-    val tmax: Double
-    }
-    class invalidCondition extends Exception
 
-  object Boundary{
-    val epsilon = 0.00000001
-    def approxEqual(a: SmartFloat, b: SmartFloat) : Boolean = {
-      val diff = a.d - b.d
-      if (diff < epsilon) true
-      else false
-    }
+abstract class DirichiletBoundary extends Boundary {
+  val f: FunctionVariable
+  val xmin: Double
+  val tmin: Double
+  val xmax: Double
+  val tmax: Double
+}
+class invalidCondition extends Exception
+
+object Boundary{
+  val epsilon = 0.00000001
+  def approxEqual(a: SmartFloat, b: SmartFloat) : Boolean = {
+    val diff = a.d - b.d
+    if (diff < epsilon) true
+    else false
   }
 
-  class RectBoundary(
+  def apply(b1: BFunction, b2: BFunction, b3: BFunction, b4: BFunction) =
+    new RectBoundary(b1, b2, b3, b4)
+
+  def apply(b1: BFunction, b2: BFunction, b3: BFunction) =
+    new ThreeSidedBoundary(b1, b2, b3)
+}
+
+class RectBoundary(
     b1: BFunction,
-    b2: BFunction,
-    b3: BFunction,
-    b4: BFunction
+  b2: BFunction,
+  b3: BFunction,
+  b4: BFunction
   ) extends DirichiletBoundary {
   assert(assertBoundary)
 
@@ -61,7 +69,7 @@ sealed abstract class Boundary
     def approxEqual(a: Double, b: Double) : Boolean = {
       if ( (a-b).abs < 0.001 ) true else false
     }
-    
+
     def compareBFs(f: BFunction, g: BFunction) : Boolean = {
       if (f.u.c == g.u.c) {
         f.interval == g.interval
@@ -79,18 +87,18 @@ sealed abstract class Boundary
                      b2.lowerPoint, b2.upperPoint,
                      b3.lowerPoint, b3.upperPoint,
                      b4.lowerPoint, b4.upperPoint)
-    
+
     val pointComparisons = for {boundary1 <- List(b1, b2, b3, b4)
                                 boundary2 <- List(b2, b3, b4)}
     if (!compareBFs(boundary1, boundary2))
       { false }
-    
+
     (points.size==4)
-    
+
   }
-  
+
   val f = b1.u.function
-  
+
   val (bottom: BFunction, top: BFunction, left: BFunction, right: BFunction) = {
     var sorted = (scala.collection.mutable.ArrayBuffer(b1, b2, b3, b4)).sortWith(
       (a, b) => a.lowerPoint(f.t) < b.lowerPoint(f.t))
@@ -115,7 +123,7 @@ sealed abstract class Boundary
 
 /**
  * Although for 3 sided boundaries the upper limits to not need to be defined,
- * I enforce them for the purposes of having a stopping point. 
+ * I enforce them for the purposes of having a stopping point.
  */
 class ThreeSidedBoundary(
   val bottom: BFunction,
@@ -134,7 +142,7 @@ class ThreeSidedBoundary(
     approxEqual(b3.u.exp.eval(bottom.lowerPoint.coordx, bottom.lowerPoint.coordt), bottom.lowerValue)
     else false
   }
-  
+
   val f = bottom.u.function
 
   val (left: BFunction, right: BFunction)= {
@@ -142,7 +150,7 @@ class ThreeSidedBoundary(
     else if (b2.u.c > b3.u.c) (b3, b2)
     else throw new invalidCondition
   }
-  
+
   val xmax = bottom.interval.hi
   val xmin = bottom.interval.lo
   val tmax = left.interval.hi

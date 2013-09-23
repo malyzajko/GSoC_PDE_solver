@@ -20,7 +20,7 @@ object SecondOrderTest extends App {
   val solution= Solver.solve(laplace, boundary, xstep = 0.2, tstep = 0.4)
 
   val realLSolution = (x: Double, t: Double) =>
-    (5/scala.math.sinh(Pi/2)) * scala.math.sin(Pi * x / 20) * scala.math.sinh(Pi*t/20)
+  (5/scala.math.sinh(Pi/2)) * scala.math.sin(Pi * x / 20) * scala.math.sinh(Pi*t/20)
   
   println("Generated Point (4, 2): " + solution(4, 2) +"\n"+solution(4,2).d)
   println("Real: " + realLSolution(4,2))

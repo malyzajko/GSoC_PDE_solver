@@ -97,12 +97,12 @@ sealed abstract class Expr {
     }
     def update(u: Function, e: Expr) = e match {
       case Zero => ()
-        case _    =>
-          if (map.contains(u)) {
-            val old = map(u)
-            map += (u -> Add(old, e))
-          } else
-            map += (u -> e)
+      case _    =>
+        if (map.contains(u)) {
+          val old = map(u)
+          map += (u -> Add(old, e))
+        } else
+          map += (u -> e)
     }
     
     def splitUp(e: Expr){
@@ -172,12 +172,12 @@ sealed abstract class Expr {
         val dt = if (map.contains(d(u, u.t))) map(d(u, u.t)) else Zero
         val dxt = if (map.contains( dd(u, u.x, u.t) ) && map.contains(dd(u, u.x, u.t)))
           Add(map(dd(u, u.x, u.t)), map(dd(u, u.t, u.x)))
-                  else if (map.contains(dd(u, u.x, u.t))) map(dd(u, u.x, u.t))
-                  else if (map.contains(dd(u, u.t, u.x))) map(dd(u, u.t, u.x))
-                  else Zero
+        else if (map.contains(dd(u, u.x, u.t))) map(dd(u, u.x, u.t))
+        else if (map.contains(dd(u, u.t, u.x))) map(dd(u, u.t, u.x))
+        else Zero
         val dxx = if (map.contains(dd(u, u.x, u.x) )) map(dd(u, u.x, u.x)) else Zero
         val dtt = if (map.contains(dd(u, u.t, u.t) )) map(dd(u, u.t, u.t)) else Zero
-        (dxx, dxt, dtt, dt, dx, noOrder, nofunct) match {
+          (dxx, dxt, dtt, dt, dx, noOrder, nofunct) match {
           case (a, Zero, Zero, h, b, c, Zero) => {
             h match {
               case Const(s) =>
@@ -207,7 +207,7 @@ sealed abstract class Expr {
                     new pde.model.HeatEquation(a, b, c, u)
                   }
                 }
-              
+                
             }
           }
           case (a, Zero, b, Zero, Zero, Zero, Zero) => new pde.model.Laplace2(u)
@@ -219,7 +219,7 @@ sealed abstract class Expr {
       }
     }
   }
-}  
+}
 
 object noFunction extends Function
 case class Powf(f: Function, c: Expr) extends Expr with Function
@@ -229,32 +229,32 @@ case class Mul(a: Expr, b: Expr) extends Expr {
     "(" + a + " * " + b + ")"
   }
 }
-case class Div(a: Expr, b: Expr) extends Expr { 
+case class Div(a: Expr, b: Expr) extends Expr {
   override def toString() : String = {
     "(" + a + " / " + b + ")"
   }
 }
-case class Add(a: Expr, b: Expr) extends Expr { 
+case class Add(a: Expr, b: Expr) extends Expr {
   override def toString() : String = {
     a + " + " + b
   }
 }
-case class Sub(a: Expr, b: Expr) extends Expr { 
+case class Sub(a: Expr, b: Expr) extends Expr {
   override def toString() : String = {
     a + " - " + b
   }
 }
-case class Sin(a: Expr) extends Expr  { 
+case class Sin(a: Expr) extends Expr  {
   override def toString() : String = {
     "Sin(" + a + ")"
   }
 }
-case class Cos(a: Expr) extends Expr  { 
+case class Cos(a: Expr) extends Expr  {
   override def toString() : String = {
     "Cos(" + a + ")"
   }
 }
-case class Neg(a: Expr) extends Expr  { 
+case class Neg(a: Expr) extends Expr  {
   override def toString() : String = {
     "-(" + a + ")"
   }

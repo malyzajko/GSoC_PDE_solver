@@ -256,7 +256,6 @@ object Solver {
     val tsize = ((left.interval.hi - left.interval.lo) / tstep + 1).toInt
     val xmin  = boundary.xmin
     val tmin  = boundary.tmin
-    var temp = Array.ofDim[SmartFloat](xsize, tsize)
     var solution = generateRectBorder(boundary,xstep, tstep, xsize, tsize)
     var iterations = 0
     def generateSolutionApp(){
@@ -267,13 +266,11 @@ object Solver {
       }
       for{i <- 1 until xsize-1;
         j <- 1 until tsize-1}{
-        temp(i)(j) = uij(i)(j)
-        val rDiff = ((temp(i)(j).d - solution(i)(j).d)/temp(i)(j).d).abs
+        val temp = solution(i)(j)
+        solution(i)(j) = uij(i)(j)
+        val rDiff = ((temp.d - solution(i)(j).d)/solution(i)(j).d).abs
         if (rDiff > diff) diff = rDiff
       }
-
-      for (i <- 1 until xsize-1; j <- 1 until tsize-1)
-        solution(i)(j) = temp(i)(j)
 
       if (diff > 0.001 && iterations < maxIterations){
         iterations += 1
@@ -284,11 +281,38 @@ object Solver {
 
     generateSolutionApp()
 
-    for(i <- 1 until xsize-1; j <- 1 until tsize-1){
-      val xError = (xstep*xstep/12) * (solution(i+1)(j)-solution(i-1)(j))
-      val tError = (tstep*tstep/12) * (solution(i)(j+1)-solution(i)(j-1))
+    for(i <- 3 until xsize-3; j <- 3 until tsize-3){
+      val xError = (xstep*xstep/48) * (solution(i+3)(j)
+        - solution(i+1)(j) - 2 * solution(i+2)(j) + 4 * solution(i)(j) - 2 * solution(i-2)(j)
+        - solution(i-1)(j) + solution(i-3)(j))
+      val tError = (tstep*tstep/48) * (solution(i)(j+3)
+        - solution(i)(j+1) - 2 * solution(i)(j+2) + 4 * solution(i)(j) - 2 * solution(i)(j-2)
+        - solution(i)(j-1) + solution(i)(j-3))
       solution(i)(j) = solution(i)(j) addError xError addError tError
     }
+    for(i <- Array(2, xsize - 3); j <- 1 until tsize - 1){
+      val xError = (xstep*xstep/48) * ( -solution(i+1)(j) - solution(i+2)(j)
+        + 4 * solution(i)(j) - solution(i-2)(j)
+        - solution(i-1)(j))
+      solution(i)(j) = solution(i)(j) addError xError
+    }
+    for(i <- 1 until xsize - 1; j <- Array(2, tsize - 3)){
+      val tError = (tstep*tstep/48) * ( -solution(i)(j+1) -  solution(i)(j+2)
+        + 4 * solution(i)(j) - solution(i)(j-2)
+        - solution(i)(j-1))
+      solution(i)(j) = solution(i)(j) addError tError
+    }
+    for(i <- Array(1, xsize - 2) ; j <- 1 until tsize - 1){
+      val xError = (xstep*xstep/48) *(- solution(i+1)(j) + 2 * solution(i)(j)
+        - solution(i-1)(j))
+      solution(2)(i) = solution(i)(j) addError xError
+    }
+    for(i <- 1 until xsize - 1; j <- Array(1, tsize-1)){
+      val tError = (tstep*tstep/48) * (-solution(i)(j+1) + 2 * solution(i)(j) -
+        solution(i)(j-1))
+      solution(i)(j) = solution(i)(j) addError tError
+    }
+
     new ErrorData(solution, eqn, boundary, xstep, tstep)
   }
 

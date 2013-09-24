@@ -13,8 +13,8 @@ class noSolutionException extends Exception
 
 object SparseMatrix {
 
-  def apply[T](data: Vector[Vector[T]]): SparseMatrix = new SparseMatrix[T](data)
-  def zeroes: SparseMatrix = new SparseMatrix[SmartFloat](Vector(Vector()))
+  def apply[T](data: Vector[Vector[T]]): SparseMatrix[T] = new SparseMatrix[T](data)
+  def zeroes: SparseMatrix[SmartFloat] = new SparseMatrix[SmartFloat](Vector(Vector()))
 
 }
 

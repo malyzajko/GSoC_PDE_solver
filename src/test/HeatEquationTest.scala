@@ -1,13 +1,9 @@
 object HeatEquationTest extends App {
-  import pde._
   import pde.model.expression._
   import pde.model.{Boundary, RectBoundary, ThreeSidedBoundary}
   import scala.math.{Pi, sin, exp}
   import pde.model.expression.Expr.{double2Const, ciT2BFunction}
-  import pde.model.expression.Expr._
-  import pde.model.expression.{to}
   import pde.solver.Solver
-  import pde.model.{LinearPDE1, HeatEquation}
   import ceres.smartfloat.SmartFloat
   import scala.util.Random
   val L = 1

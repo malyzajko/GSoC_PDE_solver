@@ -1,6 +1,6 @@
 object FirstOrderTest extends App {
   import pde.model.expression._
-  import pde.model.{Boundary}
+  import pde.model.{Boundary, ThreeSidedBoundary}
   import pde.model.expression.Expr._
   import pde.solver.Solver
   import ceres.smartfloat.SmartFloat
@@ -26,6 +26,12 @@ object FirstOrderTest extends App {
     (u(0, t) := t+2, from(0 to 10)),
     (u(10, t):= 10+2+t+10*t, from(0 to 10)),
     (u(x, 10) := 10+2+x+4*x, from(0 to 10))
+  )
+  val testPDE3 = d(u, t) + 3*d(u, x) := 0
+  val boundary3: ThreeSidedBoundary = Boundary(
+    (u(x, 0) := x*(1-x), from(0 to 1)),
+    (u(0, t) := 0, from(0 to 1)),
+    (u(1, t):= 0, from(0 to 1))
   )
   def time[A](f: => A) = {
     val s = System.nanoTime
@@ -69,5 +75,14 @@ object FirstOrderTest extends App {
   println("Real: " + realSolution2(7.5,7.5))
   println("Generated Point(9.9, 9.9): " + solution3(9.9, 9.9) + "\n" + solution2(9.9, 9.9).d)
   println("Real: " + realSolution2(9.9,9.9))
-
+  println("---------------------------------------------------------------------------------------")
+  val solution4 = {
+    time {Solver.solve(testPDE3, boundary3, xstep = 0.01, tstep = 0.01)}
+  }
+  println("Generated Point (0.1, 0.1): " + solution4(0.1,0.1)+ "\n" + solution4(0.1, 0.1).d)
+  println("Generated Point (0.5, 0.5): " + solution4(0.5,0.5)+ "\n" + solution4(0.5, 0.5).d)
+  println("Generated Point (1, 1): " + solution4(1, 1) + "\n" + solution4(1, 1).d)
+  println("Generated Point(5, 5): " + solution4(0.3, 0.1) + "\n" + solution4(0.3, 0.1).d)
+  println("Generated Point(7.5, 7.5): " + solution4(0.75, 0.65) + "\n" + solution4(0.75, 0.65).d)
+  println("Generated Point(9.9, 9.9): " + solution4(0.99, 0.99) + "\n" + solution4(0.99, 0.99).d)
 }

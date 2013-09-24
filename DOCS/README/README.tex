@@ -169,7 +169,18 @@ val point11 = solution(1, 1)
 \end{verbatim}
 optionally giving arguments for $xstep$ and $tstep$.
 \subsection{First Order PDEs}
-These two PDEs are simple polynomials.
+These two PDEs are simple polynomials which were quickly generated for
+the sake of testing.
+
+The last PDE is the equation for diffusion also
+known as the transport equation. The transport equation is used to
+model the transfer of physical quantities such as particles or energy
+being transfered inside a system through diffusion and
+convection. This equation is used in many areas of physics, notably
+fluid dynamics, electrodynamics, but it is also used to model traffic
+flow in large cities with $u$, the function we are solving for, being
+the density of some substance, either energy, polluant or cars/people
+in the case of traffic.
 
 \noindent Sample Code
 \begin{verbatim}
@@ -196,6 +207,14 @@ object FirstOrderTest extends App {
     (u(10, t):= 10+2+t+10*t, from(0 to 10)),
     (u(x, 10) := 10+2+x+4*x, from(0 to 10))
   )
+
+ val testPDE3 = d(u, t) + 3*d(u, x) := 0
+  val boundary3: ThreeSidedBoundary = Boundary(
+    (u(x, 0) := x*(1-x), from(0 to 1)),
+    (u(0, t) := 0, from(0 to 1)),
+    (u(1, t):= 0, from(0 to 1))
+  )
+
   def time[A](f: => A) = {
     val s = System.nanoTime
     val ret = f
@@ -219,7 +238,7 @@ object FirstOrderTest extends App {
 
 \noindent The output:
 \begingroup
-\fontsize{10pt}{12pt}
+\fontsize{9pt}{12pt}
 \begin{verbatim}
  1.0 * u_t + 1.0 * u_x + (-(1.0)) * u + -((-(x) * t)) = 0
  time: 89664.145544ms
@@ -263,13 +282,41 @@ object FirstOrderTest extends App {
  Generated Point(9.9, 9.9): [116.8399999951858,122.7800000049254]  (4.024409208844229E-9)(abs)
  119.80999999988663
  Real: 119.81000000000002
+---------------------------------------------------------------------------------------
+time: 15941.696283ms
+Generated Point (0.1, 0.1): [0.0001942989087732108,0.0002002077596513713]  (5.337862085616346E-18)(abs)
+1.9725333421229157E-4
+Generated Point (0.5, 0.5): [1.155977316363687e-09,1.185145919684870e-09]  (1.7821224620757228E-22)(abs)
+1.1705616180242978E-9
+Generated Point (1, 1): [-0.000000000000000,0.000000000000000]  (0.0)(abs)
+0.0
+Generated Point(5, 5): [0.03815035153287572,0.03848195415356898]  (1.7531613884173823E-15)(abs)
+0.03831615284322251
+Generated Point(7.5, 7.5): [7.132422794356522e-10,7.286072862422423e-10]  (1.5406909440568031E-22)(abs)
+7.209247828389638E-10
+Generated Point(9.9, 9.9): [6.48272999731966
 \end{verbatim}
 \endgroup
 Where the first line, the one with ``Generated Point'' is the point in
 interval notation, and the line right under it is the central
 value. The third line, ``Real'', is the exact value.
 \subsection{Laplace's Equation}
-Code:
+The Laplace equation below is for the temperature in a metal plate.
+On one side the plate is in contact with an element at fixed
+temperature, and that causes the heat in the rest of the metal plate
+to rise according to how far it is from the element.
+
+In the mathematical model, the boundary would have the
+right hand side of the boundary at infinity. However, since that is
+not possible, an arbitrary bound may be chosen, but as the grid points get
+farther from zero and closer to the right boundary, the values become
+less meaningful. Since instead of gradually dropping to zero over an
+infinite distance it drops instantly causing some discontinuity. That
+being said, points near $x=0$ are still valid approximations.
+
+\noindent Code:
+\begingroup
+\fontsize{10pt}{12pt}
 \begin{verbatim}
 object SecondOrderTest extends App {
   val x = new Variable("x")
@@ -278,34 +325,60 @@ object SecondOrderTest extends App {
   val laplace = dd(u, x, x) + dd(u, y, y) := Const(0)
   val boundary = new RectBoundary(
     (u(x, 0) := 100, from(0 to 10)),
-    (u(x, 40):= 0, from(0 to 10)),
-    (u(0, y):=0, from(0 to 40)),
-    (u(10, y):=0, from(0 to 40))
+    (u(x, 10):= 0, from(0 to 10)),
+    (u(0, y):=0, from(0 to 10)),
+    (u(10, y):=0, from(0 to 10))
   )
-  val solution= Solver.solve(laplace, boundary, xstep = 0.2)
+  val solution= Solver.solve(laplace, boundary)
 
   val realLSolution = (x: Double, t: Double) =>
-    (400/Pi)*(exp(-Pi*y/10)*sin(Pi*x/10) +
-    (1/3)*exp(-Pi*3*y/10)*sin(Pi*3*x/10) + (1/5)*exp(-Pi*y/2)*sin(Pi*x/2)
-    + (1/7)*exp(-Pi*7*y/10)*sin(Pi*7*x/10) + (1/9)*exp(-Pi*9*y/10)*sin(Pi*9*x/10))
+    {(400/Pi)*(exp(-Pi*y/10)*sin(Pi*x/10) +
+               (1/3)*exp(-Pi*3*y/10)*sin(Pi*3*x/10) + (1/5)*exp(-Pi*y/2)*sin(Pi*x/2)
+               + (1/7)*exp(-Pi*7*y/10)*sin(Pi*7*x/10) + (1/9)*exp(-Pi*9*y/10)*sin(Pi*9*x/10) +
+               (1/11)*exp(-Pi*11*y/10)*sin(Pi*11*x/10) + (1/13)*exp(-Pi*13*y/10)*sin(Pi*13*x/10) +
+               (1/15)*exp(-Pi*15*y/10)*sin(Pi*15*x/10) + (1/17)*exp(-Pi*17*y/10)*sin(Pi*17*x/10) +
+               (1/19)*exp(-Pi*19*y/10)*sin(Pi*19*x/10) + (1/21)*exp(-Pi*21*y/10)*sin(Pi*21*x/10))}
 }
 \end{verbatim}
-Output
+\endgroup
+\noindent Output:
 \begingroup
 \fontsize{10pt}{12pt}
 \begin{verbatim}
- Running SecondOrderTest
- Generated Point (4, 2): [0.4053465601093503,0.4101618942637927]  (4.201161737557659E-14)(abs)
- 0.4077542271865715
- Real: 0.40783644615089115
- Generated Point(18, 9): [1.159954366264431,1.165624827362555]  (3.525639168648441E-14)(abs)
- 1.1627895968134934
- Real: 1.2984714123775343
- Generated Point(10, 5): [1.851338280392296,1.861537303840700]  (1.543027440455468E-13)(abs)
- 1.8564377921164983
- Real: 1.887349271785328
+Generated Point (4, 2): [44.26928525755662,76.24647516825172]  (6.676405720621809E-14)(abs)
+60.25788021290417
+Real: 64.60128747987656
+Generated Point(9, 8): [0.7940406507351020,3.866985262806023]  (4.6538859365352554E-11)(abs)
+2.3305129567705625
+Real: 3.1870685127335006
+Generated Point(10, 5): [-0.000000000000000,0.000000000000000]  (0.0)(abs)
+0.0
+Real: 3.241401236346404E-15
+Generated Point(7, 5): [19.07779217972776,22.35981272662969]  (2.342640529001642E-12)(abs)
+20.718802453178725
+Real: 21.41310202760492
+Generated Point(3, 7): [8.967766196279673,10.62759708164227]  (1.437763371384856E-13)(abs)
+9.79768163896097
+Real: 11.423634925045983
+Generated Point(6, 2): [44.26940428677956,76.24649829135146]  (3.00515992549031E-13)(abs)
+60.2579512890655
+Real: 64.60128747987656
+Generated Point(6.3, 2.4): [39.11175648553486,61.31726208791461]  (3.2172378293405903E-13)(abs)
+50.214509286724734
+Real: 54.9776757853574
+Generated Point(5, 10): [-0.000000000000000,0.000000000000000]  (0.0)(abs)
+0.0
+Real: 5.5021669616387925
 \end{verbatim}
 \endgroup
+
+Note that the real value for the last point, $(5, 10)$, is not
+properly computed because it should be zero because of the how sine
+functions are calculated $\sin(2\pi n) = 0,
+\forall n$. The same applies to $(10, 5)$, but since it is
+significantly  more off, the real function should
+probably have been computed using SmartFloats so that one can obtain
+an idea of the error on that computation.
 \section{Implementaiton}
 \subsection{Modeling PDEs}
 The domain specific language to represent PDEs has \verba{Expression}
@@ -396,6 +469,7 @@ plus or minus 3 grid points away. These terms are ignored near the
 ledge and the formula to approximate the derivative is adjusted to
 have proper magnitude.
 
+
 \subsection{Speed}
 Various tests we're done regarding how big the grid can be before it
 becomes unfeasible to use the solver. Without increasing Java's
@@ -431,6 +505,16 @@ want to be specified by the user. As it is now, the boundaries are
 very rigid in their definition.
 Spherical coordinates could also be usefull for radial
 Laplace's equation.
+
+Lastly, the truncation error due to the discretization of the
+derivatives should be kept separate from the general error, or at
+least it should be saved elsewhere. This would be mostly for a
+mathematical perspective where truncation errors due to floating-point
+numbers do not exists. Thus, one would be able to recover the
+``absolute'' error on each point. Even though each point may have it's
+values skewed by floating-point truncations, so even the ``absolute''
+error would be inexact, this would still be an interessting quantity
+to keep.
 
 \begin{thebibliography}{9}
 

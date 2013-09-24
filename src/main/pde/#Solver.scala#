@@ -309,12 +309,12 @@ object Solver {
     for(i <- Array(1, xsize - 2) ; j <- 1 until tsize - 1){
       val xError = xstep2 * (- solution(i+1)(j) + 2 * solution(i)(j)
                              - solution(i-1)(j))
-        
+      
       solution(i)(j) = solution(i)(j) addError xError
     }
     for(i <- 1 until xsize - 1; j <- Array(1, tsize-2)){
       val tError = tstep2 * (-solution(i)(j+1) + 2 * solution(i)(j) -
-                            solution(i)(j-1))
+                             solution(i)(j-1))
       
       solution(i)(j) = solution(i)(j) addError tError
     }

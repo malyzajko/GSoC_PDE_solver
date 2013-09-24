@@ -50,10 +50,10 @@ object Boundary{
     else false
   }
 
-  def apply(b1: BFunction, b2: BFunction, b3: BFunction, b4: BFunction) =
+  def apply(b1: BFunction, b2: BFunction, b3: BFunction, b4: BFunction): RectBoundary =
     new RectBoundary(b1, b2, b3, b4)
-
-  def apply(b1: BFunction, b2: BFunction, b3: BFunction) =
+  
+  def apply(b1: BFunction, b2: BFunction, b3: BFunction): ThreeSidedBoundary =
     new ThreeSidedBoundary(b1, b2, b3)
 }
 
@@ -84,14 +84,14 @@ class RectBoundary(
 
     }
     val points = Set(b1.lowerPoint, b1.upperPoint,
-      b2.lowerPoint, b2.upperPoint,
-      b3.lowerPoint, b3.upperPoint,
-      b4.lowerPoint, b4.upperPoint)
+                     b2.lowerPoint, b2.upperPoint,
+                     b3.lowerPoint, b3.upperPoint,
+                     b4.lowerPoint, b4.upperPoint)
 
     val pointComparisons = for {boundary1 <- List(b1, b2, b3, b4)
-      boundary2 <- List(b2, b3, b4)}
+                                boundary2 <- List(b2, b3, b4)}
     if (!compareBFs(boundary1, boundary2))
-    { false }
+      { false }
 
     (points.size==4)
 
@@ -122,9 +122,9 @@ class RectBoundary(
 }
 
 /**
-  * Although for 3 sided boundaries the upper limits to not need to be defined,
-  * I enforce them for the purposes of having a stopping point.
-  */
+ * Although for 3 sided boundaries the upper limits to not need to be defined,
+ * I enforce them for the purposes of having a stopping point.
+ */
 class ThreeSidedBoundary(
   val bottom: BFunction,
   val b2: BFunction,

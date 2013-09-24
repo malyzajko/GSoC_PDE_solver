@@ -26,8 +26,6 @@ object ExpressionTest2 extends App {
       result(i)(j) = fn((x, xval), (t, tval))
     }
   }
-  val result2 = Solver.generateFunctionVals(t, f, step, step, 100, 100, 0, 0)
-  val result3 = Solver.generateFunctionVals(t, f, step, step, 100, 100, 0, 0)
   
   
   
